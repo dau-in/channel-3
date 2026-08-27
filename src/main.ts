@@ -6,7 +6,13 @@ import { RewindBuffer, REWIND_INTERVAL } from "./rewind";
 import { Netplay } from "./netplay";
 import { loadManifest, fetchRom, type RomEntry } from "./roms";
 import { lookupRom } from "./nesdb";
-import { cachedLabel, storeLabel, generateLabel } from "./labels";
+import {
+  cachedLabel,
+  storeLabel,
+  generateLabel,
+  forgetLabel,
+  staleLabelPrefixes,
+} from "./labels";
 import {
   addUserRom,
   listUserRoms,
@@ -1044,6 +1050,7 @@ let lastTickAt = performance.now();
 let accum = 0;
 let lastFrameAt = performance.now();
 let idleParity = 0;
+let padPollTick = 0;
 let rewindAccum = 0;
 let dialogPadPrev = 0;
 let galleryPadPrev = 0;
@@ -1083,7 +1090,10 @@ function tick(now: number): void {
   if (renderer.vhs < 0.01) renderer.vhs = 0;
   rewOverlay.hidden = !rewinding;
 
-  if (ambientTick % 30 === 0) {
+  // Own counter, not the ambient one: that only advances inside
+  // updateAmbient(), which several tick paths skip — a stalled netplay peer
+  // froze it, so this either never ran or ran every frame.
+  if (++padPollTick % 30 === 0) {
     const connected = gamepadConnected();
     padFloor.classList.toggle("connected", connected);
     padFloor.title = connected ? "Gamepad connected" : "No gamepad";
@@ -2002,7 +2012,7 @@ function purgeLocal(entry: LibraryEntry, dropSaves: boolean): void {
     localStorage.removeItem(`channel3-state:${entry.hash}`);
     localStorage.removeItem(`channel3-meta:${entry.hash}`);
   }
-  localStorage.removeItem(`channel3-label:${entry.file}`);
+  forgetLabel(entry);
   romCache.delete(entry.file);
 }
 
@@ -2278,12 +2288,7 @@ window.addEventListener("touchstart", unlockAudio, { capture: true, passive: tru
 // Label art has been regenerated a few times and the project has had two
 // earlier names; drop everything that's been superseded so old blobs don't
 // sit in localStorage forever.
-const DEAD_PREFIXES = [
-  "netnes-",
-  "canal3-",
-  "channel3-label:",
-  ...Array.from({ length: 9 }, (_, i) => `channel3-label${i + 2}:`),
-];
+const DEAD_PREFIXES = ["netnes-", "canal3-", ...staleLabelPrefixes()];
 
 for (const key of Object.keys(localStorage)) {
   if (DEAD_PREFIXES.some((p) => key.startsWith(p))) localStorage.removeItem(key);

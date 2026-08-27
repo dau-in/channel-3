@@ -15,7 +15,6 @@ export class Emulator {
   private nes: NES;
   private romString: string | null = null;
   private prevPad: [number, number] = [0, 0];
-  private frameDirty = false;
 
   private audioRate: number;
 
@@ -37,7 +36,6 @@ export class Emulator {
         for (let i = 0; i < fb.length; i++) {
           this.rgba32[i] = 0xff000000 | fb[i];
         }
-        this.frameDirty = true;
       },
       onAudioSample: (l, r) => this.onAudioSample(l, r),
     });
@@ -53,10 +51,6 @@ export class Emulator {
     this.nes = this.makeNes(rate);
     if (this.romString) this.nes.loadROM(this.romString);
     this.prevPad = [0, 0];
-  }
-
-  get hasRom(): boolean {
-    return this.romString !== null;
   }
 
   loadROM(bytes: Uint8Array): void {
@@ -85,13 +79,6 @@ export class Emulator {
 
   frame(): void {
     this.nes.frame();
-  }
-
-  /** True if a new frame arrived since the last call; clears the flag. */
-  takeFrameDirty(): boolean {
-    const d = this.frameDirty;
-    this.frameDirty = false;
-    return d;
   }
 
   // jsnes' toJSON skips the APU entirely, so a restored game goes silent

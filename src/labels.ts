@@ -22,10 +22,28 @@ const DULL = 12000; // score of a near-monochrome screen (blank/fade)
 // v8: consistent random-gameplay shots
 // v11: SUSTAINED-motion capture — one moving checkpoint can be a fade or
 // scene cut (how title fade-ins sneaked in); two consecutive cannot.
-const key = (file: string) => `channel3-label11:${file}`;
+const LABEL_VERSION = 11;
+const key = (file: string) => `channel3-label${LABEL_VERSION}:${file}`;
 
 export function cachedLabel(entry: RomEntry): string | null {
   return localStorage.getItem(key(entry.file));
+}
+
+/** Drop this entry's cached art. Callers must not spell the key themselves:
+ *  removal was still pointing at the v1 key ten versions later, so every
+ *  deleted cart left its label behind, eating the same localStorage budget
+ *  save states need. */
+export function forgetLabel(entry: RomEntry): void {
+  localStorage.removeItem(key(entry.file));
+}
+
+/** Key prefixes written by superseded generators, for the boot-time sweep.
+ *  v1 carried no number. Derived from LABEL_VERSION so bumping it can't
+ *  leave the sweep behind again. */
+export function staleLabelPrefixes(): string[] {
+  const out = ["channel3-label:"];
+  for (let v = 2; v < LABEL_VERSION; v++) out.push(`channel3-label${v}:`);
+  return out;
 }
 
 /** Color variety and brightness — black/blank frames score ~0. */

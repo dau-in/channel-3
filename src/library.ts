@@ -41,7 +41,7 @@ function wrap<T>(req: IDBRequest<T>): Promise<T> {
 
 /** Content hash — dedup key. Falls back to a JS hash if SubtleCrypto is
  *  unavailable (e.g. served over plain http on a LAN address). */
-export async function hashRom(bytes: Uint8Array): Promise<string> {
+async function hashRom(bytes: Uint8Array): Promise<string> {
   if (crypto?.subtle) {
     const buf = await crypto.subtle.digest("SHA-256", bytes);
     return Array.from(new Uint8Array(buf))

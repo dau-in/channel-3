@@ -12,7 +12,7 @@ export const BTN = {
 
 export type Action = "up" | "down" | "left" | "right" | "a" | "b" | "select" | "start";
 export const ACTIONS: Action[] = ["up", "down", "left", "right", "a", "b", "select", "start"];
-export const ACTION_BIT: Record<Action, number> = {
+const ACTION_BIT: Record<Action, number> = {
   up: BTN.UP,
   down: BTN.DOWN,
   left: BTN.LEFT,

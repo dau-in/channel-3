@@ -19,7 +19,7 @@ function crcTable(): Uint32Array {
   return (table = t);
 }
 
-export function crc32(bytes: Uint8Array): string {
+function crc32(bytes: Uint8Array): string {
   const t = crcTable();
   let c = 0xffffffff;
   for (let i = 0; i < bytes.length; i++) c = t[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
