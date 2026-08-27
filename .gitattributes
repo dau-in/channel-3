@@ -1,0 +1,11 @@
+# Pin LF so line endings stay consistent across machines, regardless of the
+# local core.autocrlf setting.
+* text=auto eol=lf
+
+# Never normalize line endings inside binaries — doing so silently
+# corrupts a ROM.
+*.nes   binary
+*.png   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary

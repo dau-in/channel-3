@@ -1,0 +1,67 @@
+{
+  "roms": [
+    {
+      "file": "streemerz.nes",
+      "title": "Streemerz",
+      "author": "Faux Game Co.",
+      "year": 2012,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://www.fauxgame.com/"
+    },
+    {
+      "file": "super-bat-puncher.nes",
+      "title": "Super Bat Puncher (Demo)",
+      "author": "Morphcat Games",
+      "year": 2011,
+      "players": 1,
+      "license": "Free demo",
+      "source": "http://morphcat.de/superbatpuncher/"
+    },
+    {
+      "file": "lan-master.nes",
+      "title": "Lan Master",
+      "author": "Shiru",
+      "year": 2011,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://shiru.untergrund.net/software.shtml"
+    },
+    {
+      "file": "chase.nes",
+      "title": "Chase",
+      "author": "Shiru",
+      "year": 2012,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://shiru.untergrund.net/software.shtml"
+    },
+    {
+      "file": "lawn-mower.nes",
+      "title": "Lawn Mower",
+      "author": "Shiru",
+      "year": 2011,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://shiru.untergrund.net/software.shtml"
+    },
+    {
+      "file": "blade-buster.nes",
+      "title": "Blade Buster",
+      "author": "HLC! Project",
+      "year": 2012,
+      "players": 1,
+      "license": "Freeware — official free download",
+      "source": "http://hlc6502.web.fc2.com/Bbuster.htm"
+    },
+    {
+      "file": "nova-the-squirrel.nes",
+      "title": "Nova the Squirrel",
+      "author": "NovaSquirrel",
+      "year": 2018,
+      "players": 1,
+      "license": "GPLv3 (open source)",
+      "source": "https://github.com/NovaSquirrel/NovaTheSquirrel"
+    }
+  ]
+}

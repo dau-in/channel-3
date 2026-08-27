@@ -1,0 +1,1422 @@
+:root {
+  /* FAMICOM — the default identity: deep burgundy plastic, signal red, gold */
+  --bg: #120806;
+  --paper: #f7ead0;
+  --dim: #a5836a;
+  --accent: #e0362c;
+  --accent-rgb: 224, 54, 44;
+  --amber: #ffc24b;
+  --amber-rgb: 255, 194, 75;
+  --accent-soft: #5c1512;
+  --accent-soft-hi: #7a1c17;
+  --accent-text: #ffb3a6;
+  --plastic: #57221c;
+  --plastic-dark: #33120f;
+  --chin-h: 36px;
+  --ambient: 60, 40, 20; /* live-updated from the framebuffer */
+}
+
+/* it's an app, not a document: no text selection or drag-select anywhere,
+   except real text fields (the netplay room code stays fully selectable) */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, .password {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* ------------------------------------------------------------- themes */
+
+body[data-theme="phosphor"] {
+  --bg: #040804;
+  --paper: #c9f2c9;
+  --dim: #6f9a72;
+  --accent: #46ff5e;
+  --accent-rgb: 70, 255, 94;
+  --amber: #b8ff7a;
+  --amber-rgb: 184, 255, 122;
+  --accent-soft: #0c3a12;
+  --accent-soft-hi: #12521a;
+  --accent-text: #a8ffb4;
+  --plastic: #2f4030;
+  --plastic-dark: #18241a;
+}
+
+body[data-theme="ice"] {
+  --bg: #05070d;
+  --paper: #d8e9f2;
+  --dim: #72879a;
+  --accent: #ff4fa3;
+  --accent-rgb: 255, 79, 163;
+  --amber: #6ee7ff;
+  --amber-rgb: 110, 231, 255;
+  --accent-soft: #471030;
+  --accent-soft-hi: #611642;
+  --accent-text: #ffb3d9;
+  --plastic: #2f3540;
+  --plastic-dark: #181c24;
+}
+
+body[data-theme="twilight"] {
+  --bg: #0b0716;
+  --paper: #eae4f5;
+  --dim: #8d82a8;
+  --accent: #a06bff;
+  --accent-rgb: 160, 107, 255;
+  --amber: #cdb4ff;
+  --amber-rgb: 205, 180, 255;
+  --accent-soft: #34206b;
+  --accent-soft-hi: #452b8a;
+  --accent-text: #d9c5ff;
+  --plastic: #3a3350;
+  --plastic-dark: #201c30;
+}
+
+/* TV chrome: two styles only — FULL SET (the whole diegetic set) and MINIMAL. */
+
+/* MINIMAL: just the picture in a subtle, consistent thin bezel (ZSNES /
+   NEStation feel) — no set, no chin, no floor deck. Clean and comfortable,
+   and it adapts to nearly the whole viewport. Volume moves to CONFIG. */
+body[data-tv="minimal"] #tv-chin,
+body[data-tv="minimal"] #floor-props { display: none; }
+body[data-tv="minimal"] #tv-frame {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+body[data-tv="minimal"] #tv-frame::after { display: none; }
+body[data-tv="minimal"] #screen-wrap {
+  /* thin neutral bezel + a faint theme hairline + a soft lift off the wall */
+  box-shadow:
+    inset 0 0 0 2px #050403,
+    0 0 0 2px #1c150e,
+    0 0 0 3px rgba(var(--amber-rgb), 0.16),
+    0 14px 40px rgb(0 0 0 / 55%);
+  /* adaptive: take almost the whole viewport, whichever axis binds */
+  width: min(98vw - 12px, calc((100dvh - 20px) * 15 / 14));
+}
+
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden; /* the TV is the page; never show scrollbars */
+  background: var(--bg);
+  font-family: "Silkscreen", monospace;
+  color: var(--paper);
+}
+
+.nes-btn, .nes-container, .nes-input, .nes-checkbox {
+  font-family: "Silkscreen", monospace !important;
+}
+
+/* ------------------------------------------------------------ the room */
+
+#stage {
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background:
+    /* wall pattern (see body[data-wall] variants below) */
+    repeating-linear-gradient(45deg, rgba(var(--amber-rgb), 0.028) 0 2px, transparent 2px 16px),
+    repeating-linear-gradient(-45deg, rgba(var(--amber-rgb), 0.028) 0 2px, transparent 2px 16px),
+    /* warm pool of light behind the TV */
+    radial-gradient(ellipse at 50% 34%, rgba(var(--amber-rgb), 0.05) 0%, transparent 66%),
+    var(--bg);
+}
+/* wall pattern presets — all static, theme-tinted, zero per-frame cost */
+body[data-wall="dots"] #stage {
+  background:
+    radial-gradient(rgba(var(--amber-rgb), 0.05) 1.5px, transparent 2px) 0 0 / 20px 20px,
+    radial-gradient(ellipse at 50% 34%, rgba(var(--amber-rgb), 0.05) 0%, transparent 66%),
+    var(--bg);
+}
+body[data-wall="checker"] #stage {
+  background:
+    repeating-conic-gradient(rgba(var(--amber-rgb), 0.022) 0 25%, transparent 0 50%) 0 0 / 44px 44px,
+    radial-gradient(ellipse at 50% 34%, rgba(var(--amber-rgb), 0.05) 0%, transparent 66%),
+    var(--bg);
+}
+body[data-wall="plain"] #stage {
+  background:
+    radial-gradient(ellipse at 50% 34%, rgba(var(--amber-rgb), 0.06) 0%, transparent 66%),
+    var(--bg);
+}
+/* the floor */
+#stage::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16dvh;
+  background: linear-gradient(180deg, transparent 0%, rgb(0 0 0 / 55%) 100%);
+  pointer-events: none;
+}
+
+#stage.cursor-hidden, #stage.cursor-hidden * { cursor: none !important; }
+
+/* --------------------------------------------- room dressing (static) */
+/* Faint furniture silhouettes flanking the TV — theme-tinted, painted once,
+   zero per-frame cost. Wide pointer-fine screens only; phones have no room. */
+#room-props { display: none; }
+/* hide on touch devices regardless of width — the TV needs all the room */
+@media (pointer: coarse) {
+  #room-props { display: none !important; }
+}
+@media (min-width: 1000px) {
+  #room-props {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    color: rgba(var(--amber-rgb), 0.1);
+  }
+  /* hard pixel edges — matches the app's chunky 8-bit look */
+  #room-props svg { position: absolute; shape-rendering: crispEdges; }
+  /* baseboard line where the wall meets the floor */
+  #room-props::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 16dvh;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(var(--amber-rgb), 0.07) 18%,
+      rgba(var(--amber-rgb), 0.07) 82%,
+      transparent
+    );
+  }
+}
+
+#tv-zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+/* room light spill driven by what's on screen */
+#tv-zone::before {
+  content: "";
+  position: absolute;
+  inset: -20% -26%;
+  /* screen bloom: a warm core hugging the set + a wide soft spill into the
+     room, both driven live by the framebuffer colour (--ambient). Reads like a
+     CRT glowing in a dark room — replaces the old reflection band. */
+  background:
+    radial-gradient(ellipse at 50% 46%, rgba(var(--ambient), 0.34) 0%, transparent 48%),
+    radial-gradient(ellipse at 50% 48%, rgba(var(--ambient), 0.16) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ---------------------------------------------------------------- TV set */
+
+#tv-frame {
+  position: relative;
+  /* flat, theme-tinted plastic with a hard two-tone split + chunky offset
+     shadow — the same visual language as NES.css buttons and containers */
+  background: linear-gradient(180deg, var(--plastic) 0 14%, var(--plastic-dark) 14% 100%);
+  border: 4px solid #0a0705;
+  border-radius: 0;
+  padding: 14px 14px 0;
+  box-shadow:
+    inset 0 4px 0 rgb(247 234 208 / 6%),
+    10px 10px 0 rgb(0 0 0 / 30%);
+}
+/* faux reflection: a static sheen under the set, tinted by the live ambient
+   light. The old -webkit-box-reflect mirrored the live WebGL canvas, which
+   composited the game video TWICE every frame — the single most expensive
+   thing in the project. This reads the same from the couch, at ~zero cost. */
+/* The old faux "reflection band" below the set read as a strange floating bar
+   (especially on mobile, where there's no surface under the TV). Removed — the
+   live ambient light now lives entirely in the screen bloom around the set. */
+#tv-frame::after { display: none; }
+
+#screen-wrap {
+  position: relative;
+  aspect-ratio: 15 / 14; /* 240x224 safe area, square pixels, integer scale */
+  width: min(98vw - 40px, calc((100dvh - 96px) * 15 / 14));
+  background: #000;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 4px #060402;
+  overflow: hidden;
+}
+
+#screen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Desktop: sharp-bilinear (backing is integer-prescaled by fitScreen, final
+     stretch bilinear — no moiré, no dropped rows). Mobile overrides to
+     `pixelated` below: nearest-neighbour is the cheapest possible composite,
+     and bilinear upscaling every frame was tanking weak mobile GPUs. */
+  image-rendering: auto;
+}
+@media (pointer: coarse) {
+  #screen { image-rendering: pixelated; }
+}
+
+/* bottom chin of the set: brand plate, fullscreen switch, power LED */
+#tv-chin {
+  height: var(--chin-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 0 10px;
+}
+
+#tv-brand {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  color: #8a7a5f;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 80%);
+  user-select: none;
+}
+
+#chin-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* volume wheel on the set */
+#volume {
+  appearance: none;
+  width: 64px;
+  height: 6px;
+  border-radius: 3px;
+  background: #14100a;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 80%);
+  cursor: pointer;
+}
+#volume::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #4a4136 0%, #2b251d 100%);
+  border: 1px solid #0a0705;
+  box-shadow: inset 0 1px 0 rgb(242 230 201 / 20%);
+}
+#volume::-moz-range-thumb {
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  background: #3a332a;
+  border: 1px solid #0a0705;
+}
+
+/* physical set buttons */
+.chin-btn {
+  width: 24px;
+  height: 18px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #3a332a 0%, #241f18 100%);
+  border: 1px solid #0a0705;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgb(242 230 201 / 14%),
+    0 2px 2px rgb(0 0 0 / 60%);
+  color: #857555;
+  cursor: pointer;
+  line-height: 0;
+  transition: color 0.15s;
+}
+.chin-btn:hover { color: var(--paper); }
+.chin-btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 70%);
+}
+
+#led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #241c12;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 80%);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+#tv-frame[data-led="on"] #led {
+  background: var(--accent);
+  box-shadow: 0 0 8px 2px rgba(var(--accent-rgb), 0.7);
+}
+#tv-frame[data-led="blink"] #led {
+  background: var(--accent);
+  box-shadow: 0 0 8px 2px rgba(var(--accent-rgb), 0.7);
+  animation: blink 0.9s steps(2) infinite;
+}
+
+/* console + controller on the floor, in front of the TV's reflection */
+#floor-props {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 30px;
+  z-index: 2;
+}
+
+#console-prop {
+  line-height: 0;
+  opacity: 0.92;
+  filter: drop-shadow(0 4px 6px rgb(0 0 0 / 55%));
+}
+#console-prop.on #console-led {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 2px rgba(var(--accent-rgb), 0.9));
+}
+
+#pad-floor {
+  color: #332c22;
+  transition: color 0.3s, filter 0.3s;
+  line-height: 0;
+  transform: perspective(140px) rotateX(30deg);
+}
+#pad-floor.connected {
+  color: var(--amber);
+  filter: drop-shadow(0 0 7px rgba(var(--amber-rgb), 0.45));
+}
+/* live button state, mirrored from keyboard + gamepad */
+.pf { fill: #3a332a; transition: fill 0.05s; }
+.pf.on { fill: var(--accent); }
+
+/* UI drawn "on the glass" */
+#ui-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+#ui-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    rgb(0 0 0 / 14%) 2px 4px
+  );
+  z-index: 99;
+}
+
+/* channel number OSD, green like every 90s set regardless of theme */
+#ch-osd {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  color: #7dff8a;
+  font-size: clamp(16px, 3vmin, 28px);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 10px rgb(125 255 138 / 70%), 2px 2px 0 rgb(0 0 0 / 80%);
+  z-index: 25;
+}
+#ch-osd[hidden] { display: none; }
+
+/* attract mode: the demo plays dimmed behind the gallery UI */
+#stage.attract #screen { filter: brightness(0.55) saturate(0.9); }
+
+/* VCR-style autosave indicator: blinking REC dot, bottom-right */
+#autosave-osd {
+  position: absolute;
+  bottom: 6%;
+  right: 5%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e8e8e8;
+  font-size: clamp(9px, 1.5vmin, 14px);
+  letter-spacing: 0.2em;
+  text-shadow: 2px 2px 0 rgb(0 0 0 / 80%);
+  z-index: 25;
+  animation: osdFade 1.6s steps(8) both;
+}
+#autosave-osd[hidden] { display: none; }
+#rec-dot {
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  background: #ff2e2e;
+  box-shadow: 0 0 8px rgb(255 46 46 / 80%);
+  animation: blink 0.5s steps(2) infinite;
+}
+@keyframes osdFade {
+  0%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* NO SIGNAL OSD: corner tag, out of the brand's way */
+#no-signal {
+  position: absolute;
+  top: 5%;
+  left: 4%;
+  background: rgb(8 8 8 / 85%);
+  border: 2px solid #cfcfcf;
+  color: #eee;
+  padding: 4px 10px;
+  font-size: clamp(8px, 1.4vmin, 13px);
+  letter-spacing: 0.28em;
+  z-index: 5;
+}
+#no-signal[hidden] { display: none; }
+
+/* --------------------------------------------------------------- gallery */
+
+#view-gallery {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4vmin;
+  padding: 3vmin;
+}
+
+#brand {
+  margin: 0;
+  font-size: clamp(28px, 5.6vmin, 52px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--paper);
+  text-shadow: 0 0 14px rgb(242 230 201 / 40%);
+  animation: flickerIn 1.1s steps(6) both, brandVibe 3.6s steps(2) 1.2s infinite;
+}
+/* periodic CRT glitch: a two-frame RGB split with a horizontal shiver */
+@keyframes brandVibe {
+  0%, 91%, 100% { transform: none; }
+  92% {
+    transform: translateX(-2px) skewX(-2deg);
+    text-shadow: -3px 0 rgb(255 0 60 / 55%), 3px 0 rgb(0 200 255 / 55%);
+  }
+  94% {
+    transform: translateX(2px);
+    text-shadow: 3px 0 rgb(255 0 60 / 55%), -3px 0 rgb(0 200 255 / 55%);
+  }
+  96% { transform: translateY(1px); }
+}
+#brand span {
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.75);
+}
+
+@keyframes flickerIn {
+  0% { opacity: 0; }
+  55% { opacity: 1; }
+  65% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+/* carousel */
+#carousel {
+  position: relative;
+  width: 100%;
+  height: clamp(150px, 33vmin, 260px);
+  perspective: 1000px;
+  touch-action: none; /* let pointer drags flip channels instead of scrolling */
+}
+
+.cart {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(120px, 23vmin, 195px);
+  margin-left: calc(clamp(120px, 23vmin, 195px) / -2);
+  transform-style: preserve-3d;
+  /* only transform/opacity are animated (compositor-friendly); filter snaps to
+     avoid the per-frame repaint cost that made scrubbing the carousel stutter */
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s;
+  will-change: transform, opacity;
+  cursor: pointer;
+}
+/* the label art must not hijack a drag with its native image-drag ghost */
+.cart, .cart * { -webkit-user-drag: none; user-select: none; }
+.cart-label img { pointer-events: none; }
+
+.cart-body {
+  position: relative;
+  background:
+    /* side rails */
+    linear-gradient(90deg, rgb(0 0 0 / 35%) 0 4%, transparent 4% 96%, rgb(0 0 0 / 35%) 96%),
+    linear-gradient(180deg, var(--plastic) 0%, var(--plastic-dark) 100%);
+  border: 3px solid #14100a;
+  border-radius: 3px 3px 7px 7px;
+  padding: 7% 9% 13%;
+  box-shadow:
+    inset 0 2px 0 rgb(242 230 201 / 10%),
+    0 10px 26px rgb(0 0 0 / 65%);
+  transition: box-shadow 0.3s;
+}
+/* grip ridges on top */
+.cart-body::before {
+  content: "";
+  display: block;
+  height: 10px;
+  margin: -4% 16% 7%;
+  border-radius: 0 0 2px 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #16110b 0 2px,
+    var(--plastic) 2px 5px
+  );
+}
+/* bottom notch */
+.cart-body::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 4%;
+  height: 5%;
+  border-radius: 2px;
+  background: rgb(0 0 0 / 40%);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 70%);
+}
+
+.cart.selected .cart-body {
+  box-shadow:
+    inset 0 2px 0 rgb(242 230 201 / 10%),
+    0 0 0 2px var(--amber),
+    0 0 22px rgba(var(--amber-rgb), 0.3),
+    0 10px 26px rgb(0 0 0 / 65%);
+}
+
+.cart-label {
+  position: relative;
+  background: #0e0a06;
+  border: 2px solid #14100a;
+  box-shadow: inset 0 0 0 2px rgb(242 230 201 / 8%);
+  aspect-ratio: 256 / 200;
+  overflow: hidden;
+}
+.cart-label img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  display: block;
+}
+.cart-label .label-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-conic-gradient(#1c1610 0 25%, #0e0a06 0 50%) 0 0/16px 16px;
+  color: var(--dim);
+  font-size: 9px;
+  text-align: center;
+  padding: 6px;
+}
+
+/* label being generated: a "tuning" scanline sweeps the blank cart until its
+   art is ready, so the player sees it's working (and can still press PLAY) */
+.cart.generating .cart-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -30%;
+  height: 30%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(var(--amber-rgb), 0.25) 45%,
+    rgba(var(--amber-rgb), 0.55) 50%,
+    rgba(var(--amber-rgb), 0.25) 55%,
+    transparent
+  );
+  mix-blend-mode: screen;
+  animation: labelScan 1.15s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes labelScan { to { top: 100%; } }
+.cart.generating .label-placeholder {
+  animation: tuneFlicker 0.45s steps(3) infinite;
+}
+.cart.generating .label-placeholder::after {
+  content: "◉ TUNING";
+  position: absolute;
+  bottom: 6%;
+  left: 0;
+  right: 0;
+  font-size: 7px;
+  letter-spacing: 0.15em;
+  color: rgba(var(--amber-rgb), 0.85);
+  animation: blink 1s steps(2) infinite;
+}
+@keyframes tuneFlicker { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.62; } }
+
+/* art arriving: a short CRT flicker as the label locks in */
+.cart.label-in .cart-label img { animation: flickerIn 0.42s steps(3) both; }
+
+/* cartridge dropping into the gallery when added (animates the inner body so
+   it doesn't fight the carousel's positional transform) */
+.cart.inserting .cart-body { animation: cartInsert 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.35) both; }
+@keyframes cartInsert {
+  0%   { transform: translateY(-64%) scale(0.6) rotateZ(9deg); opacity: 0; filter: brightness(2.6); }
+  55%  { transform: translateY(7%) scale(1.05) rotateZ(-2deg); opacity: 1; filter: brightness(1.7); }
+  100% { transform: translateY(0) scale(1) rotateZ(0); opacity: 1; filter: brightness(1); }
+}
+
+/* eject animation when a user ROM is removed: rattle, flash white, then blast
+   up out of frame with a motion blur */
+.cart.ejecting {
+  animation: cartEject 0.5s cubic-bezier(0.5, -0.2, 0.75, -0.4) forwards;
+  pointer-events: none;
+  z-index: 200 !important;
+}
+.cart.ejecting .cart-mine { display: none; }
+@keyframes cartEject {
+  0%   { transform: translateY(-50%) translateX(0) scale(1) rotateZ(0); filter: brightness(1); }
+  10%  { transform: translateY(-50%) translateX(-3%) scale(1.03) rotateZ(1.5deg); }
+  20%  { transform: translateY(-50%) translateX(3%) scale(1.03) rotateZ(-1.5deg); filter: brightness(1.6); }
+  32%  { transform: translateY(-54%) translateX(-2%) scale(1.07) rotateZ(1deg); filter: brightness(2.6) saturate(1.7); }
+  42%  { transform: translateY(-59%) translateX(0) scale(1.11) rotateZ(0); filter: brightness(3.2) saturate(1.9); }
+  100% { transform: translateY(-192%) translateX(5%) scale(0.42) rotateZ(-20deg); opacity: 0; filter: brightness(0.2) blur(4px); }
+}
+
+/* subtle "this is your ROM" marker: a small glowing dot in the corner */
+.cart-mine {
+  position: absolute;
+  top: 8%;
+  right: 10%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 6px rgba(var(--amber-rgb), 0.9), inset 0 0 0 1px rgb(0 0 0 / 35%);
+  z-index: 3;
+}
+
+.cart-title {
+  margin-top: 7%;
+  font-size: clamp(7px, 1.15vmin, 10px);
+  text-align: center;
+  color: var(--paper);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#cart-meta {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: clamp(8px, 1.25vmin, 11px);
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(var(--amber-rgb), 0.5);
+}
+
+#gallery-actions {
+  display: flex;
+  gap: 1.6vmin;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hint {
+  font-size: clamp(7px, 1.1vmin, 10px);
+  color: var(--dim);
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+.blink { animation: blink 1.4s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+/* ------------------------------------------------------------------ HUD */
+
+/* persistent MENU button (touch): a clear, corner-anchored control that opens
+   the HUD bar. Replaces the old pull-down affordance, which was ambiguous. */
+/* subtle one-time gesture hint shown on entering a game (touch): tap = menu,
+   double-tap = fullscreen. */
+#touch-hint {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: rgb(6 4 2 / 82%);
+  border: 1px solid rgba(var(--amber-rgb), 0.35);
+  color: var(--paper);
+  font-size: clamp(7px, 1.5vmin, 10px);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: touchHintFade 3.6s ease-in-out forwards;
+}
+#touch-hint[hidden] { display: none; }
+@keyframes touchHintFade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  12%, 74% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+}
+
+
+/* keyboard controls hint is meaningless on touch */
+@media (pointer: coarse) { #hud-hint { display: none; } }
+
+/* exit/fullscreen in the HUD only when the chin (full set) is hidden */
+.chin-fallback { display: none; }
+body[data-tv="minimal"] .chin-fallback { display: inline-block; }
+
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+#screen-wrap:hover #hud:not([hidden]),
+#hud.forced:not([hidden]),
+#hud.shown:not([hidden]) { opacity: 1; }
+#hud[hidden] { display: none; }
+#stage.cursor-hidden #hud { opacity: 0 !important; }
+/* tap-to-show (touch) must beat the cursor-hidden auto-fade */
+#stage.cursor-hidden #hud.shown:not([hidden]) { opacity: 1 !important; }
+
+#hud-top {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgb(0 0 0 / 85%) 0%, transparent 100%);
+}
+#rom-name {
+  flex: 1;
+  text-align: center;
+  font-size: clamp(8px, 1.3vmin, 11px);
+  color: var(--paper);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#hud-right { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+/* narrow phones: shrink the HUD buttons and let the row wrap so CFG/EXIT are
+   always reachable (they were overflowing off the right edge in monitor/shadow,
+   where the EXIT chin-fallback button widens the row) */
+@media (pointer: coarse) {
+  /* portrait is tall, not wide: stack the HUD buttons into a column pinned to
+     the right edge instead of a row that runs off-screen */
+  #hud-top { align-items: flex-start; }
+  #hud-right { flex-direction: column; align-items: flex-end; flex-wrap: nowrap; }
+  #hud-right .nes-btn { padding: 4px 8px; font-size: 9px; }
+}
+
+/* controls hint sits over live video — give it a solid backing so it's always
+   legible no matter what's on screen behind it */
+#hud-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 94%;
+  text-align: center;
+  color: var(--paper);
+  background: rgb(6 4 2 / 84%);
+  padding: 5px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--amber-rgb), 0.35);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 55%);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------- modal overlays */
+
+#view-vs, #view-settings, #view-exit, #view-continue, #view-remove {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 72%);
+  z-index: 10;
+}
+/* remove-confirm can open on top of CONFIG (the wipe button lives there) */
+#view-remove { z-index: 12; }
+#view-vs[hidden], #view-settings[hidden], #view-exit[hidden],
+#view-continue[hidden], #view-remove[hidden] {
+  display: none;
+}
+
+.vs-box, .settings-box, .modal-box {
+  position: relative;
+  width: min(440px, 88%);
+  max-height: 88%;
+  overflow-y: auto;
+  /* a slim, on-theme scrollbar so the player can tell the panel scrolls */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--amber-rgb), 0.45) transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  background: #100b06 !important;
+}
+.vs-box::-webkit-scrollbar,
+.settings-box::-webkit-scrollbar,
+.modal-box::-webkit-scrollbar { width: 6px; }
+.vs-box::-webkit-scrollbar-thumb,
+.settings-box::-webkit-scrollbar-thumb,
+.modal-box::-webkit-scrollbar-thumb {
+  background: rgba(var(--amber-rgb), 0.45);
+  border-radius: 3px;
+}
+.vs-box::-webkit-scrollbar-track,
+.settings-box::-webkit-scrollbar-track,
+.modal-box::-webkit-scrollbar-track { background: transparent; }
+
+/* controls remap grid */
+#controls-cfg summary { cursor: pointer; font-size: 10px; color: var(--amber); margin-top: 6px; }
+#controls-scroll { overflow-x: auto; scrollbar-width: none; margin: 8px 0; }
+#controls-scroll::-webkit-scrollbar { display: none; }
+#controls-grid { border-collapse: collapse; width: 100%; }
+#controls-grid th, #controls-grid td { padding: 3px; text-align: center; }
+#controls-grid th {
+  font-size: 7px;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+  font-weight: normal;
+}
+#controls-grid td.action { color: var(--paper); font-size: 8px; text-align: left; white-space: nowrap; padding-right: 6px; }
+#controls-grid .bind {
+  font-family: "Silkscreen", monospace;
+  font-size: 7px;
+  min-width: 44px;
+  padding: 4px 5px;
+  background: #1a130b;
+  color: var(--paper);
+  border: 2px solid #3a3226;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#controls-grid .bind:hover { border-color: var(--amber); color: var(--amber); }
+#controls-grid .bind.capturing {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  animation: blink 0.8s steps(2) infinite;
+}
+#btn-binds-reset { width: 100%; margin-top: 2px; }
+
+#data-row { display: flex; gap: 8px; margin: 8px 0; }
+#data-row .nes-btn { flex: 1; }
+#my-data > .nes-btn { width: 100%; margin-top: 4px; }
+#my-data summary { cursor: pointer; font-size: 10px; color: var(--amber); margin-top: 6px; }
+
+#lib-row { display: flex; gap: 8px; margin-top: 8px; }
+#lib-row input {
+  flex: 1;
+  min-width: 0;
+  font-size: 9px !important;
+  background: #1a130b !important;
+  color: var(--paper) !important;
+}
+#ext-lib summary {
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--amber);
+  margin-top: 6px;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#continue-preview[hidden] { display: none; }
+#continue-preview img {
+  display: block;
+  width: min(220px, 70%);
+  margin: 0 auto 6px;
+  image-rendering: pixelated;
+  border: 3px solid #241b10;
+  box-shadow: 0 0 0 1px #000, 0 6px 16px rgb(0 0 0 / 50%);
+}
+#continue-time { letter-spacing: 0.08em; }
+
+#about-list .nes-icon { vertical-align: middle; margin-right: 4px; }
+
+.close-x {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 4px 8px !important;
+}
+
+.password {
+  font-size: clamp(22px, 4.2vmin, 36px);
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: var(--amber);
+  text-shadow: 0 0 16px rgba(var(--amber-rgb), 0.85);
+  margin: 8px 0;
+  user-select: all;
+  animation: blink 2s steps(2) infinite;
+}
+
+.vs-divider { color: var(--dim); font-size: 10px; }
+
+#join-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+#join-code {
+  width: 9em;
+  text-transform: uppercase;
+  font-size: 13px !important;
+  background: #1a130b !important;
+  color: var(--paper) !important;
+}
+
+.dim { color: var(--dim); font-size: 10px; margin: 0; line-height: 1.7; }
+
+/* settings */
+.settings-box { text-align: left; }
+.settings-box label {
+  display: block;
+  font-size: 10px;
+  color: var(--dim);
+}
+.settings-box label input[type="range"] {
+  width: 100%;
+  margin: 4px 0 10px;
+  accent-color: var(--accent);
+  height: 14px;
+}
+.crt-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.crt-row span { color: var(--paper); }
+
+.select-row {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.select-row select {
+  flex: 1;
+  max-width: 60%;
+  background: #1a130b;
+  color: var(--paper);
+  border: 2px solid #3a3226;
+  padding: 6px;
+  font-family: "Silkscreen", monospace;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+#credits summary, #about summary {
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--amber);
+  margin-top: 6px;
+}
+#credits-list, #about-list {
+  list-style: none;
+  padding: 0;
+  font-size: 9px;
+  color: var(--dim);
+  line-height: 1.9;
+}
+#credits-list a, #about-list a { color: var(--amber); }
+
+/* ------------------------------------------------------ small overlays */
+
+#rew-overlay {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  color: #fff;
+  font-size: clamp(12px, 2.4vmin, 22px);
+  text-shadow: 0 0 10px rgb(255 255 255 / 70%);
+  animation: blink 0.5s steps(2) infinite;
+  z-index: 20;
+}
+#rew-overlay[hidden] { display: none; }
+
+#badge {
+  position: absolute;
+  bottom: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #100b06;
+  border: 3px solid var(--paper);
+  box-shadow: 0 0 0 3px #000;
+  padding: 8px 14px;
+  font-size: clamp(8px, 1.3vmin, 11px);
+  z-index: 30;
+  white-space: nowrap;
+}
+#badge[hidden] { display: none; }
+
+#toast-gamepad {
+  position: absolute;
+  bottom: 42px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #100b06;
+  border: 3px solid var(--amber);
+  padding: 8px 12px;
+  font-size: 9px;
+  color: var(--amber);
+  max-width: 46%;
+  z-index: 30;
+  animation: slideIn 0.25s steps(4) both;
+}
+#toast-gamepad[hidden] { display: none; }
+@keyframes slideIn { from { transform: translateX(-120%); } }
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgb(10 6 3 / 78%);
+  z-index: 40;
+  color: var(--amber);
+}
+#overlay.dragover { display: flex; animation: dropFade 0.16s ease-out; }
+/* marching-ants dashed frame */
+#overlay.dragover::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 3px dashed rgba(var(--amber-rgb), 0.9);
+  background: repeating-linear-gradient(45deg, transparent 0 12px, rgba(var(--amber-rgb), 0.06) 12px 24px);
+  animation: ants 0.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes ants { to { background-position: 34px 0; } }
+@keyframes dropFade { from { opacity: 0; } }
+.drop-inner {
+  position: relative;
+  text-align: center;
+  animation: dropPulse 1.1s ease-in-out infinite;
+}
+.drop-arrow {
+  font-size: 40px;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(var(--amber-rgb), 0.8);
+  animation: dropBounce 0.85s ease-in-out infinite;
+}
+#overlay p {
+  font-size: 15px;
+  margin: 12px 0 4px;
+  text-shadow: 0 0 12px rgba(var(--amber-rgb), 0.7);
+}
+.drop-sub { font-size: 9px; color: var(--dim); letter-spacing: 0.22em; }
+@keyframes dropPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes dropBounce { 0%, 100% { transform: translateY(-4px); } 50% { transform: translateY(8px); } }
+
+/* --------------------------------------------- buttons: dark OSD theme */
+
+.nes-btn {
+  font-size: clamp(8px, 1.3vmin, 11px) !important;
+  padding: 8px 12px;
+  background: #241b10;
+  color: var(--paper);
+}
+.nes-btn:hover, .nes-btn:focus {
+  background: #35281a;
+  color: var(--paper);
+}
+.nes-btn.is-small {
+  font-size: 8px !important;
+  padding: 4px 8px;
+}
+.nes-btn.is-primary {
+  background: var(--amber);
+  color: #1c1207;
+}
+.nes-btn.is-primary:hover, .nes-btn.is-primary:focus {
+  background: #ffd28d;
+  color: #1c1207;
+}
+.nes-btn.is-error {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.nes-btn.is-error:hover, .nes-btn.is-error:focus {
+  background: var(--accent-soft-hi);
+  color: var(--accent-text);
+}
+.nes-btn.is-disabled, .nes-btn:disabled {
+  background: #1a140d;
+  color: #5a4f3e;
+}
+/* NES.css ships a blue focus ring; keep it in-palette */
+.nes-btn:focus {
+  box-shadow: 0 0 0 5px rgba(var(--amber-rgb), 0.22) !important;
+}
+.nes-input:focus {
+  outline-color: var(--amber) !important;
+}
+
+/* ------------------------------------------------ on-screen touch pad */
+
+:root { --tscale: 1; }
+body[data-touchsize="s"] { --tscale: 0.82; }
+body[data-touchsize="l"] { --tscale: 1.24; }
+
+/* the decorative floor console/pad is pointless on touch and would collide
+   with the on-screen controls, so drop it on any coarse-pointer device */
+@media (pointer: coarse) {
+  /* On mobile the on-screen touch pad IS the controller, so the decorative
+     console+gamepad deck is redundant and was colliding with the controls and
+     the Select/Start pills. Hide it entirely — the deck is a desktop flourish. */
+  #floor-props { display: none; }
+}
+
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  z-index: 60; /* over the TV; hidden while a modal is open */
+  pointer-events: none;
+  touch-action: none;
+}
+#touch-controls[hidden] { display: none; }
+#touch-controls > * {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+/* -- minimalist translucent touch pad: flat, thin outlines, low opacity, no
+   relief; the theme accent lights up only on press -- */
+
+/* D-pad, bottom-left — a faint flat cross of thin-outlined bars */
+#touch-dpad {
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  width: calc(clamp(116px, 32vmin, 188px) * var(--tscale));
+  height: calc(clamp(116px, 32vmin, 188px) * var(--tscale));
+}
+#touch-dpad::before, #touch-dpad::after {
+  content: "";
+  position: absolute;
+  background: rgb(20 16 11 / 34%);
+  border: 1.5px solid rgb(242 230 201 / 26%);
+  border-radius: 10px;
+}
+#touch-dpad::before { left: 35%; right: 35%; top: 3%; bottom: 3%; }
+#touch-dpad::after { top: 35%; bottom: 35%; left: 3%; right: 3%; }
+.dp-center {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 15%; height: 15%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1.5px solid rgb(242 230 201 / 22%);
+  z-index: 3;
+}
+/* directional chevrons: thin + dim, lit in the theme accent when held */
+.dp-arm {
+  position: absolute;
+  background: rgb(242 230 201 / 45%);
+  opacity: 0.6;
+  transition: opacity 0.05s, background 0.05s, filter 0.05s;
+  z-index: 2;
+}
+.dp-up    { top: 12%;    left: 50%; transform: translateX(-50%); width: 13%; height: 13%; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.dp-down  { bottom: 12%; left: 50%; transform: translateX(-50%); width: 13%; height: 13%; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.dp-left  { left: 12%;   top: 50%;  transform: translateY(-50%); width: 13%; height: 13%; clip-path: polygon(0 50%, 100% 0, 100% 100%); }
+.dp-right { right: 12%;  top: 50%;  transform: translateY(-50%); width: 13%; height: 13%; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+#touch-dpad.up .dp-up,
+#touch-dpad.down .dp-down,
+#touch-dpad.left .dp-left,
+#touch-dpad.right .dp-right {
+  opacity: 1;
+  background: var(--accent);
+  filter: drop-shadow(0 0 5px rgba(var(--accent-rgb), 0.9));
+}
+
+/* A / B, bottom-right: a natural gamepad DIAGONAL — B upper-left, A lower-right,
+   overlapping ~45%. Rolling one thumb down-and-right from B into the overlap
+   hits A too (run + jump) without lifting; the seam is the shared corner. See
+   the roll-zone handler in main.ts. --ab is the button size (portrait bumps it). */
+#touch-ab {
+  --ab: calc(clamp(56px, 16vmin, 92px) * var(--tscale));
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  display: block;
+  width: calc(var(--ab) * 1.72);
+  height: calc(var(--ab) * 1.72);
+}
+#touch-ab .tbtn-b { position: absolute; left: 0; top: 0; }
+#touch-ab .tbtn-a { position: absolute; right: 0; bottom: 0; }
+.tbtn {
+  font-family: "Silkscreen", monospace;
+  border: none;
+  cursor: pointer;
+  touch-action: none;
+}
+/* flat translucent circle, thin accent-tinted outline; fills with the accent
+   only while pressed */
+.tbtn-round {
+  width: var(--ab, calc(clamp(56px, 16vmin, 92px) * var(--tscale)));
+  height: var(--ab, calc(clamp(56px, 16vmin, 92px) * var(--tscale)));
+  border-radius: 50%;
+  background: rgb(20 16 11 / 30%);
+  border: 1.5px solid rgba(var(--accent-rgb), 0.55);
+  color: rgba(var(--accent-rgb), 0.9);
+  font-size: calc(clamp(15px, 4.4vmin, 26px) * var(--tscale));
+  transition: background 0.05s, color 0.05s, box-shadow 0.05s;
+}
+.tbtn-round.on {
+  background: rgba(var(--accent-rgb), 0.85);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.6);
+}
+
+/* Select / Start — thin translucent pills, centered along the bottom */
+#touch-se {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: calc(clamp(12px, 3vmin, 20px) * var(--tscale));
+}
+.tbtn-pill {
+  width: calc(clamp(58px, 15vmin, 80px) * var(--tscale));
+  height: calc(clamp(20px, 4.6vmin, 26px) * var(--tscale));
+  border-radius: 999px;
+  background: rgb(20 16 11 / 30%);
+  border: 1.5px solid rgb(242 230 201 / 24%);
+  color: var(--dim);
+  font-size: clamp(6px, 1.8vmin, 8px);
+  letter-spacing: 0.08em;
+  transition: color 0.05s, border-color 0.05s;
+}
+.tbtn-pill.on {
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.7);
+}
+
+@media (max-width: 640px) {
+  #hud-hint { display: none; }
+  .nes-btn { padding: 6px 8px; }
+}
+
+/* Landscape phones (short viewport): compact the gallery so the carousel and
+   action row aren't crammed — smaller brand, tighter gaps, hide the tip line. */
+@media (orientation: landscape) and (max-height: 500px) {
+  #view-gallery { gap: 1.2vmin; padding: 1.4vmin; justify-content: center; }
+  #brand { font-size: clamp(18px, 7.5vh, 34px); }
+  #carousel { height: clamp(112px, 40vh, 190px); }
+  #cart-meta { font-size: 9px; }
+  #gallery-actions { gap: 8px; }
+  #gallery-actions .nes-btn { font-size: 8px !important; padding: 6px 9px; }
+  #tips { display: none; }
+}
+
+/* Portrait phones. Gallery: TV centered and as large as the width allows (no
+   dead void below). Playing: handheld layout — TV up top, controls in the lower
+   area, with Select/Start lifted above the thumb clusters so B can't hit Start. */
+@media (orientation: landscape) {
+  /* keep Select/Start clear of the TV chin at bottom-centre: float them a
+     little way up over the low game area, between the corner d-pad / A-B */
+  #stage.playing #touch-se { bottom: clamp(84px, 16dvh, 150px); }
+}
+
+@media (orientation: portrait) {
+  body:not([data-tv]) #screen-wrap { width: min(98vw, calc(72dvh * 15 / 14)); }
+
+  #stage.playing { align-items: flex-start; }
+  #stage.playing #tv-zone { margin-top: 3dvh; }
+  body:not([data-tv]) #stage.playing #screen-wrap { width: min(99vw, calc((60dvh - 30px) * 15 / 14)); }
+  #stage.playing #touch-dpad {
+    width: calc(clamp(140px, 44vw, 220px) * var(--tscale));
+    height: calc(clamp(140px, 44vw, 220px) * var(--tscale));
+  }
+  #stage.playing #touch-ab { --ab: calc(clamp(68px, 22vw, 104px) * var(--tscale)); }
+  #stage.playing #touch-se { bottom: clamp(150px, 25dvh, 260px); }
+}
+
+/* ============== single chunky aesthetic — set, chin, carts ============== */
+
+#tv-chin { border-top: 3px solid #0a0705; }
+.chin-btn { border-radius: 0 !important; }
+#led { border-radius: 0 !important; }
+#volume { border-radius: 0; }
+#volume::-webkit-slider-thumb { border-radius: 0; }
+.cart-body {
+  border-radius: 0;
+  box-shadow: inset 0 2px 0 rgb(242 230 201 / 10%), 6px 6px 0 rgb(0 0 0 / 45%);
+}
+.cart.selected .cart-body {
+  box-shadow:
+    inset 0 2px 0 rgb(242 230 201 / 10%),
+    0 0 0 3px var(--amber),
+    6px 6px 0 rgb(0 0 0 / 45%);
+}
+
+/* CONFIG layout: section headers + device-conditional rows */
+.cfg-sec {
+  margin: 14px 0 4px;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  border-bottom: 1px solid rgba(var(--amber-rgb), 0.18);
+  padding-bottom: 4px;
+}
+#crt-sliders[hidden] { display: none; }
+/* Touch rows appear on anything with touch capability (phones, tablets, and
+   touchscreen desktops); only a pure mouse/keyboard machine hides them. */
+@media not all and (any-pointer: coarse) {
+  .touch-only { display: none !important; }
+}
+
+/* ============ translucent panels — the game stays in sight ============ */
+
+#view-vs, #view-exit, #view-continue, #view-remove { background: rgb(0 0 0 / 35%); }
+.vs-box, .modal-box { background: rgb(16 11 6 / 85%) !important; }
+/* NES.css paints a SOLID ::after layer behind is-dark containers; inside a
+   scrolling panel it scrolls with the content — that was the "half solid,
+   half transparent" CONFIG bug. Kill it; the panel's own translucent
+   background is the single source of color. */
+.vs-box::after, .settings-box::after, .modal-box::after { background: transparent !important; }
+
+/* CONFIG stays a centered panel, but translucent — the picture shows through
+   so CRT/theme changes remain visible while tweaking */
+#view-settings { background: rgb(0 0 0 / 15%); }
+.settings-box { background: rgb(16 11 6 / 70%) !important; }
+
+/* floor console + pad share the set's flat theme plastic */
+.prop-plastic { fill: var(--plastic); }
+.prop-dark2 { fill: var(--plastic-dark); }
+.prop-black { fill: #0b0704; }
+

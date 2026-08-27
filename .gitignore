@@ -1,0 +1,16 @@
+node_modules/
+dist/
+
+# Stray ROMs anywhere except the bundled homebrew library
+# (all freely distributable — see public/roms/manifest.json)
+*.nes
+!public/roms/*.nes
+
+# Local editor config
+.vscode/settings.json
+
+# Agent-only material: skills, instructions, working notes.
+# Lives on disk, stays out of the repo.
+.claude/
+CLAUDE.md
+AGENTS.md
