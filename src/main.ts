@@ -2302,6 +2302,16 @@ function renderCredits(): void {
 
 // ------------------------------------------------------------------- boot
 
+// Test handles for the end-to-end driver: the audio pipe has no DOM surface
+// to assert against, and touch input has to be read back after synthetic
+// pointer events. Both are stripped from production builds.
+if (import.meta.env.DEV) {
+  Object.assign(window as unknown as Record<string, unknown>, {
+    __audio: audio,
+    __input: input,
+  });
+}
+
 // Ask for persistent storage so the browser doesn't evict added ROMs and
 // their saves under pressure.
 void navigator.storage?.persist?.();
