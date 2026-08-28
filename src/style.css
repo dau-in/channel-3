@@ -1296,6 +1296,64 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   background: var(--btn-off);
   color: var(--btn-off-text);
 }
+
+/* ------------------------------------------- NES.css colour overrides
+
+   NES.css hardcodes its own palette (white dark-container borders, a #212529
+   backing plate, and blue/red/grey 3D button edges). Those ignore the theme
+   entirely, so every theme was framing its modals in white and edging PLAY in
+   blue. The edges derive from the button's own fill, so they follow whatever
+   the theme sets without needing more variables.                          */
+
+.nes-container.is-dark {
+  color: var(--paper);
+  background-color: var(--panel);
+  border-color: var(--field-border);
+}
+.nes-container.is-dark::after { background-color: var(--panel); }
+.nes-container.is-dark.with-title > .title {
+  color: var(--paper);
+  background-color: var(--panel);
+}
+
+/* the pixel 3D edge under every button */
+.nes-btn::after { box-shadow: inset -4px -4px var(--outline); }
+.nes-btn:hover::after { box-shadow: inset -6px -6px var(--outline); }
+.nes-btn:active:not(.is-disabled)::after { box-shadow: inset 4px 4px var(--outline); }
+.nes-btn:focus { box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0.3); }
+.nes-btn.is-disabled::after,
+.nes-btn:disabled::after { box-shadow: inset -4px -4px var(--outline); }
+
+.nes-btn.is-primary::after { box-shadow: inset -4px -4px color-mix(in srgb, var(--amber) 42%, #000); }
+.nes-btn.is-primary:hover::after { box-shadow: inset -6px -6px color-mix(in srgb, var(--amber) 42%, #000); }
+.nes-btn.is-primary:active:not(.is-disabled)::after { box-shadow: inset 4px 4px color-mix(in srgb, var(--amber) 42%, #000); }
+
+.nes-btn.is-error::after { box-shadow: inset -4px -4px color-mix(in srgb, var(--accent-soft) 55%, #000); }
+.nes-btn.is-error:hover::after { box-shadow: inset -6px -6px color-mix(in srgb, var(--accent-soft) 55%, #000); }
+.nes-btn.is-error:active:not(.is-disabled)::after { box-shadow: inset 4px 4px color-mix(in srgb, var(--accent-soft) 55%, #000); }
+
+/* REMOVE — the destructive one, so it wears the theme's accent outright */
+.nes-btn.is-warning {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.nes-btn.is-warning:hover, .nes-btn.is-warning:focus {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.nes-btn.is-warning::after { box-shadow: inset -4px -4px color-mix(in srgb, var(--accent) 45%, #000); }
+.nes-btn.is-warning:hover::after { box-shadow: inset -6px -6px color-mix(in srgb, var(--accent) 45%, #000); }
+.nes-btn.is-warning:active:not(.is-disabled)::after { box-shadow: inset 4px 4px color-mix(in srgb, var(--accent) 45%, #000); }
+
+.nes-input.is-dark {
+  color: var(--paper);
+  background-color: var(--field);
+  outline-color: var(--field-border);
+}
+
+.nes-checkbox.is-dark + span { color: var(--paper); }
+.nes-checkbox.is-dark + span::before { color: var(--field-border); }
+.nes-checkbox.is-dark:checked + span::before { color: var(--accent); }
 /* NES.css ships a blue focus ring; keep it in-palette */
 .nes-btn:focus {
   box-shadow: 0 0 0 5px rgba(var(--amber-rgb), 0.22) !important;
