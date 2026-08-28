@@ -1345,6 +1345,24 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
 .nes-btn.is-warning:hover::after { box-shadow: inset -6px -6px color-mix(in srgb, var(--accent) 45%, #000); }
 .nes-btn.is-warning:active:not(.is-disabled)::after { box-shadow: inset 4px 4px color-mix(in srgb, var(--accent) 45%, #000); }
 
+/* Chrome draws its own two-tone focus ring (outline-style: auto), which comes
+   out white on these dark panels — nothing here had ever styled it. Keyboard
+   AND gamepad navigation both rely on seeing what's focused, so it gets the
+   theme accent instead of being removed.
+
+   Deliberately :focus, not :focus-visible: dialog focus is moved
+   programmatically by the pad handler, and :focus-visible doesn't reliably
+   match that — which would blank the indicator exactly when it matters. */
+select:focus,
+input:focus,
+summary:focus,
+button:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* .nes-btn already carries its own themed focus glow; one ring is enough */
+.nes-btn:focus { outline: none; }
+
 .nes-input.is-dark {
   color: var(--paper);
   background-color: var(--field);
