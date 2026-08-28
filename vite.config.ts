@@ -20,10 +20,8 @@ export default defineConfig({
           "NES emulator with CRT shader, P2P netplay, rewind and a built-in homebrew library.",
         display: "standalone",
         orientation: "landscape",
-        // Ghost Slate's background, so the splash and the icon are the same
-        // slate rather than the old burgundy.
-        background_color: "#14161c",
-        theme_color: "#14161c",
+        background_color: "#120806",
+        theme_color: "#120806",
         icons: [
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
           { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

@@ -1,5 +1,6 @@
 :root {
-  /* FAMICOM — the default identity: deep burgundy plastic, signal red, gold */
+  /* FAMICOM HERITAGE — the default identity, matched to the app icon:
+     burgundy chassis, signal red, gold CH 3 on washi paper */
   --bg: #120806;
   --paper: #f7ead0;
   --dim: #a5836a;
@@ -7,11 +8,11 @@
   --accent-rgb: 224, 54, 44;
   --amber: #ffc24b;
   --amber-rgb: 255, 194, 75;
-  --accent-soft: #5c1512;
-  --accent-soft-hi: #7a1c17;
-  --accent-text: #ffb3a6;
+  --accent-soft: #33120f;
+  --accent-soft-hi: #57221c;
+  --accent-text: #fff3e6;
   --plastic: #57221c;
-  --plastic-dark: #33120f;
+  --plastic-dark: #36120d;
   /* surfaces — every theme owns its own chrome, so nothing borrows another
      theme's colour. Famicom keeps the values these were hardcoded to. */
   --outline: #0a0705;
@@ -50,9 +51,7 @@ input, textarea, .password {
 
 /* ------------------------------------------------------------- themes */
 
-/* GHOST SLATE — the shipped default, matching the app icon: slate chassis,
-   silver phosphor, moonlight highlights. Famicom stays the base palette in
-   :root, so this is an override like any other theme. */
+/* GHOST SLATE — slate chassis, silver phosphor, moonlight highlights. */
 body[data-theme="ghost"] {
   --bg: #14161c;
   --paper: #d7e0f0;
@@ -66,8 +65,7 @@ body[data-theme="ghost"] {
   --accent-text: #e8f0fe;
   --plastic: #363e4e;
   --plastic-dark: #1e222a;
-  /* surfaces — every theme owns its own chrome, so nothing borrows another
-     theme's colour. Famicom keeps the values these were hardcoded to. */
+  /* surfaces */
   --outline: #06080c;
   --panel: #0e1015;
   --field: #10131a;
@@ -101,8 +99,7 @@ body[data-theme="phosphor"] {
   --accent-text: #a8ffb4;
   --plastic: #2f4030;
   --plastic-dark: #18241a;
-  /* surfaces — every theme owns its own chrome, so nothing borrows another
-     theme's colour. Famicom keeps the values these were hardcoded to. */
+  /* surfaces */
   --outline: #010301;
   --panel: #060d07;
   --field: #08140a;
@@ -136,8 +133,7 @@ body[data-theme="ice"] {
   --accent-text: #ffb3d9;
   --plastic: #2f3540;
   --plastic-dark: #181c24;
-  /* surfaces — every theme owns its own chrome, so nothing borrows another
-     theme's colour. Famicom keeps the values these were hardcoded to. */
+  /* surfaces */
   --outline: #02040a;
   --panel: #080b13;
   --field: #0b0f19;
@@ -171,8 +167,7 @@ body[data-theme="twilight"] {
   --accent-text: #d9c5ff;
   --plastic: #3a3350;
   --plastic-dark: #201c30;
-  /* surfaces — every theme owns its own chrome, so nothing borrows another
-     theme's colour. Famicom keeps the values these were hardcoded to. */
+  /* surfaces */
   --outline: #05030c;
   --panel: #100a20;
   --field: #150e28;
