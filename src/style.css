@@ -12,6 +12,26 @@
   --accent-text: #ffb3a6;
   --plastic: #57221c;
   --plastic-dark: #33120f;
+  /* surfaces — every theme owns its own chrome, so nothing borrows another
+     theme's colour. Famicom keeps the values these were hardcoded to. */
+  --outline: #0a0705;
+  --panel: #100b06;
+  --field: #1a130b;
+  --field-border: #3a3226;
+  --btn: #241b10;
+  --btn-hi: #35281a;
+  --btn-off: #1a140d;
+  --btn-off-text: #5a4f3e;
+  --on-accent: #1c1207;
+  --amber-hi: #ffd28d;
+  --chassis: #3a332a;
+  --chassis-hi: #4a4136;
+  --chassis-lo: #241f18;
+  --cart-dark: #0e0a06;
+  --cart-line: #14100a;
+  --led-off: #241c12;
+  --prop: #0b0704;
+  --brand: #8a7a5f;
   --chin-h: 36px;
   --ambient: 60, 40, 20; /* live-updated from the framebuffer */
 }
@@ -46,6 +66,26 @@ body[data-theme="ghost"] {
   --accent-text: #e8f0fe;
   --plastic: #363e4e;
   --plastic-dark: #1e222a;
+  /* surfaces — every theme owns its own chrome, so nothing borrows another
+     theme's colour. Famicom keeps the values these were hardcoded to. */
+  --outline: #06080c;
+  --panel: #0e1015;
+  --field: #10131a;
+  --field-border: #333c4c;
+  --btn: #1b202b;
+  --btn-hi: #272f3d;
+  --btn-off: #121519;
+  --btn-off-text: #4d5768;
+  --on-accent: #10131a;
+  --amber-hi: #ffffff;
+  --chassis: #333c4c;
+  --chassis-hi: #465165;
+  --chassis-lo: #1e222a;
+  --cart-dark: #0b0d12;
+  --cart-line: #12151d;
+  --led-off: #1e222a;
+  --prop: #0a0c10;
+  --brand: #6f809c;
 }
 
 body[data-theme="phosphor"] {
@@ -61,6 +101,26 @@ body[data-theme="phosphor"] {
   --accent-text: #a8ffb4;
   --plastic: #2f4030;
   --plastic-dark: #18241a;
+  /* surfaces — every theme owns its own chrome, so nothing borrows another
+     theme's colour. Famicom keeps the values these were hardcoded to. */
+  --outline: #010301;
+  --panel: #060d07;
+  --field: #08140a;
+  --field-border: #273b29;
+  --btn: #0f1f11;
+  --btn-hi: #19301c;
+  --btn-off: #0a120b;
+  --btn-off-text: #446140;
+  --on-accent: #041206;
+  --amber-hi: #d9ffb4;
+  --chassis: #2a3a2b;
+  --chassis-hi: #3b4d3c;
+  --chassis-lo: #18241a;
+  --cart-dark: #040e05;
+  --cart-line: #09160a;
+  --led-off: #12210f;
+  --prop: #020602;
+  --brand: #5d7d5f;
 }
 
 body[data-theme="ice"] {
@@ -76,6 +136,26 @@ body[data-theme="ice"] {
   --accent-text: #ffb3d9;
   --plastic: #2f3540;
   --plastic-dark: #181c24;
+  /* surfaces — every theme owns its own chrome, so nothing borrows another
+     theme's colour. Famicom keeps the values these were hardcoded to. */
+  --outline: #02040a;
+  --panel: #080b13;
+  --field: #0b0f19;
+  --field-border: #2d3442;
+  --btn: #141a26;
+  --btn-hi: #1f2735;
+  --btn-off: #0c1017;
+  --btn-off-text: #46536a;
+  --on-accent: #060a12;
+  --amber-hi: #b3f2ff;
+  --chassis: #2f3540;
+  --chassis-hi: #414a58;
+  --chassis-lo: #181c24;
+  --cart-dark: #060911;
+  --cart-line: #0c1119;
+  --led-off: #1a1f2a;
+  --prop: #04060c;
+  --brand: #5f7183;
 }
 
 body[data-theme="twilight"] {
@@ -91,6 +171,26 @@ body[data-theme="twilight"] {
   --accent-text: #d9c5ff;
   --plastic: #3a3350;
   --plastic-dark: #201c30;
+  /* surfaces — every theme owns its own chrome, so nothing borrows another
+     theme's colour. Famicom keeps the values these were hardcoded to. */
+  --outline: #05030c;
+  --panel: #100a20;
+  --field: #150e28;
+  --field-border: #382e52;
+  --btn: #1e1636;
+  --btn-hi: #2a2049;
+  --btn-off: #120d22;
+  --btn-off-text: #574a75;
+  --on-accent: #0d0819;
+  --amber-hi: #e5d7ff;
+  --chassis: #3a3350;
+  --chassis-hi: #4c4467;
+  --chassis-lo: #201c30;
+  --cart-dark: #0a0616;
+  --cart-line: #100b22;
+  --led-off: #241c3a;
+  --prop: #070414;
+  --brand: #75689a;
 }
 
 /* TV chrome: two styles only — FULL SET (the whole diegetic set) and MINIMAL. */
@@ -111,8 +211,8 @@ body[data-tv="minimal"] #tv-frame::after { display: none; }
 body[data-tv="minimal"] #screen-wrap {
   /* thin neutral bezel + a faint theme hairline + a soft lift off the wall */
   box-shadow:
-    inset 0 0 0 2px #050403,
-    0 0 0 2px #1c150e,
+    inset 0 0 0 2px var(--outline),
+    0 0 0 2px var(--chassis-lo),
     0 0 0 3px rgba(var(--amber-rgb), 0.16),
     0 14px 40px rgb(0 0 0 / 55%);
   /* adaptive: take almost the whole viewport, whichever axis binds */
@@ -250,7 +350,7 @@ body[data-wall="plain"] #stage {
   /* flat, theme-tinted plastic with a hard two-tone split + chunky offset
      shadow — the same visual language as NES.css buttons and containers */
   background: linear-gradient(180deg, var(--plastic) 0 14%, var(--plastic-dark) 14% 100%);
-  border: 4px solid #0a0705;
+  border: 4px solid var(--outline);
   border-radius: 0;
   padding: 14px 14px 0;
   box-shadow:
@@ -272,7 +372,7 @@ body[data-wall="plain"] #stage {
   width: min(98vw - 40px, calc((100dvh - 96px) * 15 / 14));
   background: #000;
   border-radius: 0;
-  box-shadow: inset 0 0 0 4px #060402;
+  box-shadow: inset 0 0 0 4px var(--outline);
   overflow: hidden;
 }
 
@@ -305,7 +405,7 @@ body[data-wall="plain"] #stage {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.34em;
-  color: #8a7a5f;
+  color: var(--brand);
   text-shadow: 0 1px 0 rgb(0 0 0 / 80%);
   user-select: none;
 }
@@ -322,7 +422,7 @@ body[data-wall="plain"] #stage {
   width: 64px;
   height: 6px;
   border-radius: 3px;
-  background: #14100a;
+  background: var(--field);
   box-shadow: inset 0 1px 2px rgb(0 0 0 / 80%);
   cursor: pointer;
 }
@@ -331,16 +431,16 @@ body[data-wall="plain"] #stage {
   width: 10px;
   height: 14px;
   border-radius: 2px;
-  background: linear-gradient(180deg, #4a4136 0%, #2b251d 100%);
-  border: 1px solid #0a0705;
+  background: linear-gradient(180deg, var(--chassis-hi) 0%, var(--chassis-lo) 100%);
+  border: 1px solid var(--outline);
   box-shadow: inset 0 1px 0 rgb(242 230 201 / 20%);
 }
 #volume::-moz-range-thumb {
   width: 10px;
   height: 14px;
   border-radius: 2px;
-  background: #3a332a;
-  border: 1px solid #0a0705;
+  background: var(--chassis);
+  border: 1px solid var(--outline);
 }
 
 /* physical set buttons */
@@ -351,13 +451,13 @@ body[data-wall="plain"] #stage {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #3a332a 0%, #241f18 100%);
-  border: 1px solid #0a0705;
+  background: linear-gradient(180deg, var(--chassis) 0%, var(--chassis-lo) 100%);
+  border: 1px solid var(--outline);
   border-radius: 3px;
   box-shadow:
     inset 0 1px 0 rgb(242 230 201 / 14%),
     0 2px 2px rgb(0 0 0 / 60%);
-  color: #857555;
+  color: var(--brand);
   cursor: pointer;
   line-height: 0;
   transition: color 0.15s;
@@ -372,7 +472,7 @@ body[data-wall="plain"] #stage {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #241c12;
+  background: var(--led-off);
   box-shadow: inset 0 1px 2px rgb(0 0 0 / 80%);
   transition: background 0.2s, box-shadow 0.2s;
 }
@@ -403,13 +503,14 @@ body[data-wall="plain"] #stage {
   opacity: 0.92;
   filter: drop-shadow(0 4px 6px rgb(0 0 0 / 55%));
 }
+#console-led { fill: var(--led-off); }
 #console-prop.on #console-led {
   fill: var(--accent);
   filter: drop-shadow(0 0 2px rgba(var(--accent-rgb), 0.9));
 }
 
 #pad-floor {
-  color: #332c22;
+  color: var(--chassis);
   transition: color 0.3s, filter 0.3s;
   line-height: 0;
   transform: perspective(140px) rotateX(30deg);
@@ -419,7 +520,7 @@ body[data-wall="plain"] #stage {
   filter: drop-shadow(0 0 7px rgba(var(--amber-rgb), 0.45));
 }
 /* live button state, mirrored from keyboard + gamepad */
-.pf { fill: #3a332a; transition: fill 0.05s; }
+.pf { fill: var(--chassis); transition: fill 0.05s; }
 .pf.on { fill: var(--accent); }
 
 /* UI drawn "on the glass" */
@@ -446,7 +547,7 @@ body[data-wall="plain"] #stage {
   position: absolute;
   top: 5%;
   right: 5%;
-  color: #7dff8a;
+  color: var(--amber);
   font-size: clamp(16px, 3vmin, 28px);
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -466,7 +567,7 @@ body[data-wall="plain"] #stage {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #e8e8e8;
+  color: var(--paper);
   font-size: clamp(9px, 1.5vmin, 14px);
   letter-spacing: 0.2em;
   text-shadow: 2px 2px 0 rgb(0 0 0 / 80%);
@@ -478,7 +579,7 @@ body[data-wall="plain"] #stage {
   width: 0.8em;
   height: 0.8em;
   border-radius: 50%;
-  background: #ff2e2e;
+  background: var(--accent);
   box-shadow: 0 0 8px rgb(255 46 46 / 80%);
   animation: blink 0.5s steps(2) infinite;
 }
@@ -493,7 +594,7 @@ body[data-wall="plain"] #stage {
   top: 5%;
   left: 4%;
   background: rgb(8 8 8 / 85%);
-  border: 2px solid #cfcfcf;
+  border: 2px solid var(--paper);
   color: #eee;
   padding: 4px 10px;
   font-size: clamp(8px, 1.4vmin, 13px);
@@ -581,7 +682,7 @@ body[data-wall="plain"] #stage {
     /* side rails */
     linear-gradient(90deg, rgb(0 0 0 / 35%) 0 4%, transparent 4% 96%, rgb(0 0 0 / 35%) 96%),
     linear-gradient(180deg, var(--plastic) 0%, var(--plastic-dark) 100%);
-  border: 3px solid #14100a;
+  border: 3px solid var(--cart-line);
   border-radius: 3px 3px 7px 7px;
   padding: 7% 9% 13%;
   box-shadow:
@@ -598,7 +699,7 @@ body[data-wall="plain"] #stage {
   border-radius: 0 0 2px 2px;
   background: repeating-linear-gradient(
     to bottom,
-    #16110b 0 2px,
+    var(--cart-line) 0 2px,
     var(--plastic) 2px 5px
   );
 }
@@ -625,8 +726,8 @@ body[data-wall="plain"] #stage {
 
 .cart-label {
   position: relative;
-  background: #0e0a06;
-  border: 2px solid #14100a;
+  background: var(--cart-dark);
+  border: 2px solid var(--cart-line);
   box-shadow: inset 0 0 0 2px rgb(242 230 201 / 8%);
   aspect-ratio: 256 / 200;
   overflow: hidden;
@@ -644,7 +745,7 @@ body[data-wall="plain"] #stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: repeating-conic-gradient(#1c1610 0 25%, #0e0a06 0 50%) 0 0/16px 16px;
+  background: repeating-conic-gradient(var(--cart-line) 0 25%, var(--cart-dark) 0 50%) 0 0/16px 16px;
   color: var(--dim);
   font-size: 9px;
   text-align: center;
@@ -896,7 +997,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   flex-direction: column;
   gap: 14px;
   text-align: center;
-  background: #100b06 !important;
+  background: var(--panel) !important;
 }
 .vs-box::-webkit-scrollbar,
 .settings-box::-webkit-scrollbar,
@@ -929,9 +1030,9 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   font-size: 7px;
   min-width: 44px;
   padding: 4px 5px;
-  background: #1a130b;
+  background: var(--field);
   color: var(--paper);
-  border: 2px solid #3a3226;
+  border: 2px solid var(--field-border);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -954,7 +1055,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   flex: 1;
   min-width: 0;
   font-size: 9px !important;
-  background: #1a130b !important;
+  background: var(--field) !important;
   color: var(--paper) !important;
 }
 #ext-lib summary {
@@ -976,7 +1077,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   width: min(220px, 70%);
   margin: 0 auto 6px;
   image-rendering: pixelated;
-  border: 3px solid #241b10;
+  border: 3px solid var(--btn);
   box-shadow: 0 0 0 1px #000, 0 6px 16px rgb(0 0 0 / 50%);
 }
 #continue-time { letter-spacing: 0.08em; }
@@ -1012,7 +1113,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   width: 9em;
   text-transform: uppercase;
   font-size: 13px !important;
-  background: #1a130b !important;
+  background: var(--field) !important;
   color: var(--paper) !important;
 }
 
@@ -1044,9 +1145,9 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
 .select-row select {
   flex: 1;
   max-width: 60%;
-  background: #1a130b;
+  background: var(--field);
   color: var(--paper);
-  border: 2px solid #3a3226;
+  border: 2px solid var(--field-border);
   padding: 6px;
   font-family: "Silkscreen", monospace;
   font-size: 9px;
@@ -1087,7 +1188,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   bottom: 42px;
   left: 50%;
   transform: translateX(-50%);
-  background: #100b06;
+  background: var(--panel);
   border: 3px solid var(--paper);
   box-shadow: 0 0 0 3px #000;
   padding: 8px 14px;
@@ -1104,7 +1205,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #100b06;
+  background: var(--panel);
   border: 3px solid var(--amber);
   padding: 8px 12px;
   font-size: 9px;
@@ -1164,11 +1265,11 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
 .nes-btn {
   font-size: clamp(8px, 1.3vmin, 11px) !important;
   padding: 8px 12px;
-  background: #241b10;
+  background: var(--btn);
   color: var(--paper);
 }
 .nes-btn:hover, .nes-btn:focus {
-  background: #35281a;
+  background: var(--btn-hi);
   color: var(--paper);
 }
 .nes-btn.is-small {
@@ -1177,11 +1278,11 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
 }
 .nes-btn.is-primary {
   background: var(--amber);
-  color: #1c1207;
+  color: var(--on-accent);
 }
 .nes-btn.is-primary:hover, .nes-btn.is-primary:focus {
-  background: #ffd28d;
-  color: #1c1207;
+  background: var(--amber-hi);
+  color: var(--on-accent);
 }
 .nes-btn.is-error {
   background: var(--accent-soft);
@@ -1192,8 +1293,8 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   color: var(--accent-text);
 }
 .nes-btn.is-disabled, .nes-btn:disabled {
-  background: #1a140d;
-  color: #5a4f3e;
+  background: var(--btn-off);
+  color: var(--btn-off-text);
 }
 /* NES.css ships a blue focus ring; keep it in-palette */
 .nes-btn:focus {
@@ -1386,7 +1487,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 
 /* ============== single chunky aesthetic — set, chin, carts ============== */
 
-#tv-chin { border-top: 3px solid #0a0705; }
+#tv-chin { border-top: 3px solid var(--outline); }
 .chin-btn { border-radius: 0 !important; }
 #led { border-radius: 0 !important; }
 #volume { border-radius: 0; }
@@ -1431,10 +1532,11 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 /* CONFIG stays a centered panel, but translucent — the picture shows through
    so CRT/theme changes remain visible while tweaking */
 #view-settings { background: rgb(0 0 0 / 15%); }
-.settings-box { background: rgb(16 11 6 / 70%) !important; }
+.settings-box { background: color-mix(in srgb, var(--panel) 70%, transparent) !important; }
 
 /* floor console + pad share the set's flat theme plastic */
 .prop-plastic { fill: var(--plastic); }
 .prop-dark2 { fill: var(--plastic-dark); }
-.prop-black { fill: #0b0704; }
+.prop-black { fill: var(--prop); }
+.prop-chassis { fill: var(--chassis); }
 
