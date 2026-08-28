@@ -20,13 +20,17 @@ export default defineConfig({
           "NES emulator with CRT shader, P2P netplay, rewind and a built-in homebrew library.",
         display: "standalone",
         orientation: "landscape",
-        background_color: "#0b0704",
-        theme_color: "#0b0704",
+        // Ghost Slate's background, so the splash and the icon are the same
+        // slate rather than the old burgundy.
+        background_color: "#14161c",
+        theme_color: "#14161c",
         icons: [
-          { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          { src: "icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
           {
-            src: "icons/icon-512.png",
+            // Separate art: Android crops the outer 20% of a maskable icon,
+            // which would take the antenna tips off the full-bleed version.
+            src: "icons/icon-512-maskable.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",

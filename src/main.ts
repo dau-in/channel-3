@@ -91,7 +91,9 @@ interface Settings {
 const settings: Settings = {
   autosave: true,
   volume: 1,
-  theme: "famicom",
+  // Ghost Slate ships as the default so the app matches its own icon.
+  // Famicom is still the base palette in :root and one pick away.
+  theme: "ghost",
   filter: "nearest",
   tv: "full",
   touch: "auto",
