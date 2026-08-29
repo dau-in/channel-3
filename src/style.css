@@ -264,6 +264,16 @@ body[data-wall="plain"] #stage {
     radial-gradient(ellipse at 50% 34%, rgba(var(--amber-rgb), 0.06) 0%, transparent 66%),
     var(--bg);
 }
+/* set switched off: the tube stops lighting the room. --ambient is driven
+   inline from the framebuffer, so main.ts zeroes it; this fades the rest of
+   the set down with it instead of snapping. */
+#stage.powered-off #tv-frame,
+#stage.powered-off #floor-props,
+#stage.powered-off #room-props {
+  filter: brightness(0.55);
+}
+#tv-frame, #floor-props, #room-props { transition: filter 0.7s ease; }
+
 /* the floor */
 #stage::after {
   content: "";

@@ -86,7 +86,11 @@ interface Settings {
   touch: "auto" | "on" | "off";
   touchSize: string;
   wall: string;
+  idle: IdleMode;
 }
+
+/** What the tube shows while nothing is running. */
+type IdleMode = "previews" | "static" | "bars" | "blank";
 
 const settings: Settings = {
   autosave: true,
@@ -97,6 +101,7 @@ const settings: Settings = {
   touch: "auto",
   touchSize: "m",
   wall: "diamonds",
+  idle: "previews",
 };
 
 try {
@@ -186,10 +191,21 @@ const barsRgba = new Uint8Array(NES_WIDTH * NES_HEIGHT * 4);
   }
 }
 
+// A dead tube. Cheaper than clearing per frame and it matches the shape the
+// renderer expects.
+const blankRgba = new Uint8Array(NES_WIDTH * NES_HEIGHT * 4);
+for (let i = 3; i < blankRgba.length; i += 4) blankRgba[i] = 255;
+
 // ------------------------------------------------------------ attract mode
 
 let galleryEnteredAt = performance.now();
 let powerOffStatic = 0;
+
+// The set can actually be switched off from the gallery — the shader ramp
+// that opens the picture on boot runs backwards into the classic collapse,
+// and the room loses the light the tube was casting.
+let powered = true;
+let offSettled = false;
 
 let attractEmu: Emulator | null = null;
 let attract: { idx: number; until: number } | null = null;
@@ -269,7 +285,7 @@ function updateAmbient(rgba: Uint8Array): void {
 
 function updateLed(): void {
   let state = "off";
-  if (view === "playing" && game) state = "on";
+  if (powered) state = "on";
   if (!hostCode.hidden && !netplay.active) state = "blink";
   tvFrame.dataset.led = state;
   $("#console-prop").classList.toggle("on", state !== "off");
@@ -877,6 +893,7 @@ function focusDialog(root: HTMLElement): void {
 // -------------------------------------------------------------- keyboard
 
 window.addEventListener("keydown", (e) => {
+  if (wakeIfOff()) return;
   if (e.target instanceof HTMLInputElement) {
     if (e.code === "Enter" && e.target.id === "join-code") $("#btn-join").click();
     return;
@@ -917,7 +934,7 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener(
   "wheel",
   (e) => {
-    if (view !== "gallery" || !viewVs.hidden || !viewSettings.hidden) return;
+    if (!powered || view !== "gallery" || !viewVs.hidden || !viewSettings.hidden) return;
     stepCarousel(e.deltaY > 0 || e.deltaX > 0 ? 1 : -1);
   },
   { passive: true },
@@ -933,7 +950,7 @@ let dragAnchorX = 0;
 let dragStartX = 0;
 
 carousel.addEventListener("pointerdown", (e) => {
-  if (view !== "gallery" || !viewVs.hidden || !viewSettings.hidden || !viewRemove.hidden) return;
+  if (!powered || view !== "gallery" || !viewVs.hidden || !viewSettings.hidden || !viewRemove.hidden) return;
   dragging = true;
   dragged = false;
   dragAnchorX = e.clientX;
@@ -1003,16 +1020,42 @@ function toggleFullscreen(): void {
 
 $("#btn-fullscreen").addEventListener("click", toggleFullscreen);
 
-$("#btn-power").addEventListener("click", () => {
-  if (view === "playing") {
-    confirmExit();
+// Cutting the power mid-game would throw away unsaved progress, so while
+// something is running the button asks first and this only ever runs from the
+// gallery.
+function togglePower(): void {
+  powered = !powered;
+  sfx.back();
+  if (!powered) {
+    stopAttract();
+    viewGallery.hidden = true;
+    stage.classList.add("powered-off");
+    // the tube stops lighting the room
+    stage.style.setProperty("--ambient", "0, 0, 0");
+    ambR = -99;
+    void animatePower(0, 650);
   } else {
-    // Already in the gallery: just thump the tube.
-    powerOffStatic = 12;
-    renderer.vhs = 1.4;
-    sfx.back();
+    stage.classList.remove("powered-off");
+    viewGallery.hidden = false;
+    galleryEnteredAt = performance.now();
+    powerOffStatic = 8;
+    void animatePower(1, 900);
   }
+  updateLed();
+}
+
+$("#btn-power").addEventListener("click", () => {
+  if (view === "playing") confirmExit();
+  else togglePower();
 });
+
+// MINIMAL hides the chin, and with it the power button, so an off set would
+// have no way back. Any key or a tap on the screen wakes it.
+function wakeIfOff(): boolean {
+  if (powered) return false;
+  togglePower();
+  return true;
+}
 
 // ------------------------------------------------- controller prop & pad
 
@@ -1123,6 +1166,23 @@ function tick(now: number): void {
 
   // ---- gallery: static, attract mode, no game running
   if (view === "gallery" || !game) {
+    // Switched off: let the collapse play out, then stop feeding the tube —
+    // the canvas holds the dead frame and nothing here has to run.
+    if (!powered) {
+      if (renderer.power > 0.002) {
+        genStatic();
+        renderer.render(staticRgba);
+        offSettled = false;
+      } else if (!offSettled) {
+        // one last frame so the tube goes properly dark instead of holding
+        // the collapsed line for as long as the set stays off
+        offSettled = true;
+        renderer.render(blankRgba);
+      }
+      accum = 0;
+      return;
+    }
+
     // Nothing here needs 60Hz. Halve it unless the attract emulator or the
     // power-off burst actually wants frames.
     if ((++idleParity & 1) === 1 && !attract && powerOffStatic === 0) {
@@ -1130,13 +1190,20 @@ function tick(now: number): void {
       return;
     }
     const idleFor = now - galleryEnteredAt;
+    const noSignalDue = library.length === 0 && idleFor > 4000;
     let frame: Uint8Array;
     if (powerOffStatic > 0) {
       powerOffStatic--;
       genStatic();
       frame = staticRgba;
       noSignal.hidden = true;
-    } else if (library.length > 0 && idleFor > 3000) {
+    } else if (settings.idle === "bars") {
+      frame = barsRgba;
+      noSignal.hidden = true;
+    } else if (settings.idle === "blank") {
+      frame = blankRgba;
+      noSignal.hidden = !noSignalDue;
+    } else if (settings.idle === "previews" && library.length > 0 && idleFor > 3000) {
       if ((!attract || now > attract.until) && !attractLoading) void nextAttractChannel();
       if (attractStatic > 0) {
         attractStatic--;
@@ -1154,9 +1221,9 @@ function tick(now: number): void {
       genStatic();
       frame = staticRgba;
       // Empty library and nothing to show: say so instead of hissing forever.
-      noSignal.hidden = !(library.length === 0 && idleFor > 4000);
+      noSignal.hidden = !noSignalDue;
     }
-    stage.classList.toggle("attract", frame !== staticRgba);
+    stage.classList.toggle("attract", !!attractEmu && frame === attractEmu.rgba);
     renderer.render(frame);
     updateAmbient(frame);
 
@@ -1504,6 +1571,18 @@ applyWall(settings.wall);
 wallSelect.addEventListener("change", () => {
   settings.wall = wallSelect.value;
   applyWall(settings.wall);
+  saveSettings();
+  sfx.select();
+});
+
+const idleSelect = $<HTMLSelectElement>("#idle-select");
+idleSelect.value = settings.idle;
+idleSelect.addEventListener("change", () => {
+  settings.idle = idleSelect.value as IdleMode;
+  // leaving previews should park the attract emulator rather than let it keep
+  // holding a ROM it will never show
+  if (settings.idle !== "previews") stopAttract();
+  galleryEnteredAt = performance.now();
   saveSettings();
   sfx.select();
 });

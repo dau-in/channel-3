@@ -97,24 +97,36 @@ vec3 sampleEPX(vec2 uv) {
   return P;
 }
 
+// The tube's power ramp: the picture opens from, and collapses back to, a
+// bright horizontal line. This is the set switching on and off, not a CRT
+// effect, so it has to apply on the raw path too — it used to sit past the
+// u_enabled early-out, which meant it never ran in the default preset.
+vec2 powerWarp(vec2 uv, out float flash) {
+  flash = 1.0;
+  if (u_power >= 1.0) return uv;
+  float p = clamp(u_power, 0.0, 1.0);
+  float openY = smoothstep(0.0, 0.75, p);
+  float openX = smoothstep(0.0, 0.25, p);
+  flash = 1.0 + (1.0 - p) * 5.0;
+  return (uv - 0.5) / vec2(max(openX, 0.001), max(openY, 0.002)) + 0.5;
+}
+
 void main() {
+  float flash;
+
   if (u_enabled < 0.5) {
-    vec3 raw = u_epx > 0.5 ? sampleEPX(v_uv) : texture2D(u_tex, cropUV(v_uv)).rgb;
-    gl_FragColor = vec4(raw, 1.0);
+    vec2 ruv = powerWarp(v_uv, flash);
+    if (ruv.x < 0.0 || ruv.x > 1.0 || ruv.y < 0.0 || ruv.y > 1.0) {
+      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+      return;
+    }
+    vec3 raw = u_epx > 0.5 ? sampleEPX(ruv) : texture2D(u_tex, cropUV(ruv)).rgb;
+    gl_FragColor = vec4(raw * flash, 1.0);
     return;
   }
 
-  vec2 uv = warp(v_uv);
-
-  // CRT power on/off: the picture opens from a bright horizontal line.
-  float flash = 1.0;
-  if (u_power < 1.0) {
-    float p = clamp(u_power, 0.0, 1.0);
-    float openY = smoothstep(0.0, 0.75, p);
-    float openX = smoothstep(0.0, 0.25, p);
-    uv = (uv - 0.5) / vec2(max(openX, 0.001), max(openY, 0.002)) + 0.5;
-    flash = 1.0 + (1.0 - p) * 5.0;
-  }
+  // warp first, then the ramp — same order the CRT path always used
+  vec2 uv = powerWarp(warp(v_uv), flash);
 
   // VHS rewind: per-row jitter + a rolling tracking band.
   if (u_vhs > 0.0) {
