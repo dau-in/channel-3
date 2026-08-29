@@ -2412,8 +2412,11 @@ function renderCredits(): void {
   $("#credits-list").innerHTML = library
     .filter((e) => !e.mine)
     .map(
+      // year 0 means "not established" — a few homebrew releases have no
+      // date anyone can point at, and "(0)" on a credits page is worse than
+      // saying nothing
       (e) =>
-        `<li>${e.title} — ${e.author} (${e.year}) · ${e.license} · ` +
+        `<li>${e.title} — ${e.author}${e.year ? ` (${e.year})` : ""} · ${e.license} · ` +
         `<a href="${e.source}" target="_blank" rel="noreferrer">source</a></li>`,
     )
     .join("");
