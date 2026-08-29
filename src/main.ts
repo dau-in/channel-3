@@ -53,6 +53,7 @@ const viewVs = $("#view-vs");
 const viewSettings = $("#view-settings");
 const carousel = $("#carousel");
 const cartMeta = $("#cart-meta");
+const cartCount = $("#cart-count");
 const overlay = $("#overlay");
 const badge = $("#badge");
 const romInput = $<HTMLInputElement>("#rom-input");
@@ -341,6 +342,7 @@ function renderCarousel(): void {
     el.innerHTML = `
       <div class="cart-body">
         ${entry.mine ? '<span class="cart-mine" title="Your ROM"></span>' : ""}
+        ${entry.players >= 2 ? '<span class="cart-2p" title="Two players">2P</span>' : ""}
         <div class="cart-label">
           <div class="label-placeholder">${entry.title}</div>
           <img alt="${entry.title}" draggable="false" hidden />
@@ -388,6 +390,9 @@ function layoutCarousel(): void {
   });
   const entry = library[selected];
   cartMeta.textContent = entry ? (entry.year ? `${entry.author} · ${entry.year}` : entry.author) : "";
+  // bundled + added, so the shelf always says how deep it goes
+  const pad = (n: number) => String(n).padStart(2, "0");
+  cartCount.textContent = library.length ? `${pad(selected + 1)} / ${pad(library.length)}` : "";
   syncRemoveButton();
 }
 

@@ -862,6 +862,33 @@ body[data-wall="plain"] #stage {
   text-shadow: 0 0 8px rgba(var(--amber-rgb), 0.5);
 }
 
+/* position on the shelf and how much shelf there is, bundled plus whatever
+   the player added — a tuner readout, not a headline, so it sits under the
+   title in --dim rather than competing with it */
+#cart-count {
+  margin: 2px 0 0;
+  min-height: 1.1em;
+  font-size: clamp(7px, 1vmin, 9px);
+  letter-spacing: 0.14em;
+  color: var(--dim);
+}
+
+/* Two-player carts get a corner tag. Only the exceptions are marked: with
+   one 2P game in twelve, tagging every single-player cart would be noise. */
+.cart-2p {
+  position: absolute;
+  top: 6%;
+  right: 7%;
+  z-index: 2;
+  padding: 1px 3px;
+  font-size: clamp(5px, 0.85vmin, 8px);
+  letter-spacing: 0.06em;
+  color: var(--on-accent);
+  background: var(--amber);
+  border-radius: 2px;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 45%);
+}
+
 #gallery-actions {
   display: flex;
   gap: 1.6vmin;
