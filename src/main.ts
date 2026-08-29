@@ -1132,6 +1132,10 @@ let padPollTick = 0;
 let rewindAccum = 0;
 let dialogPadPrev = 0;
 let galleryPadPrev = 0;
+let galleryPadDir = 0;
+let galleryPadHeldAt = 0;
+/** How long a direction must be held before it starts repeating. */
+const PAD_REPEAT_DELAY = 380;
 
 function tick(now: number): void {
   accum += now - lastTickAt;
@@ -1246,8 +1250,21 @@ function tick(now: number): void {
       const pad = input.pollGamepad();
       const pressed = pad & ~galleryPadPrev;
       galleryPadPrev = pad;
-      if (pressed & BTN.LEFT) stepCarousel(-1);
-      else if (pressed & BTN.RIGHT) stepCarousel(1);
+
+      // A held key repeats because the OS repeats it; a held stick sends the
+      // same bit every poll and edge detection sees nothing after the first.
+      // Give the pad the same behaviour by hand: act on the press, then once
+      // it has been held a beat start feeding steps, and let stepCarousel's
+      // own pacing decide how fast they land.
+      const dir = pad & (BTN.LEFT | BTN.RIGHT);
+      if (dir !== galleryPadDir) {
+        galleryPadDir = dir;
+        galleryPadHeldAt = now;
+      }
+      const repeating = dir !== 0 && now - galleryPadHeldAt > PAD_REPEAT_DELAY;
+
+      if (pressed & BTN.LEFT || (repeating && dir & BTN.LEFT)) stepCarousel(-1);
+      else if (pressed & BTN.RIGHT || (repeating && dir & BTN.RIGHT)) stepCarousel(1);
       else if (pressed & (BTN.A | BTN.START)) void launchSelected();
     }
     accum = 0;

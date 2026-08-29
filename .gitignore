@@ -14,3 +14,6 @@ dist/
 .claude/
 CLAUDE.md
 AGENTS.md
+
+# scratch previews, never shipped
+.preview/
