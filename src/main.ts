@@ -386,6 +386,26 @@ function selectCart(i: number): void {
   layoutCarousel();
 }
 
+// Held keys and wheel flicks arrive far faster than the shelf can answer: the
+// OS repeats a key ~30x/s while the cart transition runs 300ms, so every step
+// cut the previous one short — the shelf trailed the input and the move blip
+// machine-gunned into itself. Cap the rate to something a hand can read, and
+// while a run is going swap in a short linear hop so the carts keep up. Click
+// and drag stay on selectCart: those are already paced by the pointer.
+const STEP_MIN_MS = 110;
+let lastStepAt = 0;
+let scrubTimer = 0;
+
+function stepCarousel(dir: number): void {
+  const now = performance.now();
+  if (now - lastStepAt < STEP_MIN_MS) return;
+  lastStepAt = now;
+  carousel.classList.add("scrubbing");
+  clearTimeout(scrubTimer);
+  scrubTimer = window.setTimeout(() => carousel.classList.remove("scrubbing"), 200);
+  selectCart(selected + dir);
+}
+
 // Saves for an added ROM key off its hash, so renaming the file keeps them.
 function saveKeyFor(entry: LibraryEntry): string {
   return entry.mine && entry.hash ? entry.hash : entry.title;
@@ -884,8 +904,8 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   if (view === "gallery") {
-    if (e.code === "ArrowLeft") selectCart(selected - 1);
-    else if (e.code === "ArrowRight") selectCart(selected + 1);
+    if (e.code === "ArrowLeft") stepCarousel(-1);
+    else if (e.code === "ArrowRight") stepCarousel(1);
     else if (e.code === "Enter" && !e.repeat) void launchSelected();
     else if (e.code === "KeyV" && !e.repeat) openVs();
   } else if (e.code === "Escape") {
@@ -898,7 +918,7 @@ window.addEventListener(
   "wheel",
   (e) => {
     if (view !== "gallery" || !viewVs.hidden || !viewSettings.hidden) return;
-    selectCart(selected + (e.deltaY > 0 || e.deltaX > 0 ? 1 : -1));
+    stepCarousel(e.deltaY > 0 || e.deltaX > 0 ? 1 : -1);
   },
   { passive: true },
 );
@@ -1144,8 +1164,8 @@ function tick(now: number): void {
       const pad = input.pollGamepad();
       const pressed = pad & ~galleryPadPrev;
       galleryPadPrev = pad;
-      if (pressed & BTN.LEFT) selectCart(selected - 1);
-      else if (pressed & BTN.RIGHT) selectCart(selected + 1);
+      if (pressed & BTN.LEFT) stepCarousel(-1);
+      else if (pressed & BTN.RIGHT) stepCarousel(1);
       else if (pressed & (BTN.A | BTN.START)) void launchSelected();
     }
     accum = 0;

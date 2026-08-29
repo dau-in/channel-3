@@ -667,6 +667,12 @@ body[data-wall="plain"] #stage {
   will-change: transform, opacity;
   cursor: pointer;
 }
+/* mid-run the 300ms ease never completes, so the shelf reads as lagging the
+   input; a short linear hop keeps the carts under the key instead */
+#carousel.scrubbing .cart {
+  transition: transform 0.12s linear, opacity 0.12s linear;
+}
+
 /* the label art must not hijack a drag with its native image-drag ghost */
 .cart, .cart * { -webkit-user-drag: none; user-select: none; }
 .cart-label img { pointer-events: none; }
