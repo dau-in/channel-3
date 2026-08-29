@@ -62,6 +62,51 @@
       "players": 1,
       "license": "GPLv3 (open source)",
       "source": "https://github.com/NovaSquirrel/NovaTheSquirrel"
+    },
+    {
+      "file": "spacegulls.nes",
+      "title": "Spacegulls",
+      "author": "Morphcat Games",
+      "year": 2021,
+      "players": 2,
+      "license": "Freeware — free distribution",
+      "source": "https://morphcatgames.itch.io/spacegulls"
+    },
+    {
+      "file": "from-below.nes",
+      "title": "From Below",
+      "author": "Matt Hughson",
+      "year": 2020,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://mhughson.itch.io/from-below"
+    },
+    {
+      "file": "rollie.nes",
+      "title": "Rollie",
+      "author": "Optovania",
+      "year": 0,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://optovania.itch.io/rollie"
+    },
+    {
+      "file": "all-hell-unleashed.nes",
+      "title": "All Hell Unleashed",
+      "author": "8bitslasher",
+      "year": 0,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://8bitslasher.itch.io/ahu"
+    },
+    {
+      "file": "proto-dere.nes",
+      "title": "PROTO DERE (Alter)",
+      "author": "AppSir Games",
+      "year": 0,
+      "players": 1,
+      "license": "Freeware — free distribution",
+      "source": "https://appsir.itch.io/proto-dere-nes"
     }
   ]
 }
