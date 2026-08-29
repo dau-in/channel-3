@@ -12,6 +12,7 @@ import {
   generateLabel,
   forgetLabel,
   staleLabelPrefixes,
+  LABEL_CONCURRENCY,
 } from "./labels";
 import {
   addUserRom,
@@ -466,16 +467,25 @@ async function generateMissingLabels(): Promise<void> {
   if (generatingLabels) return;
   generatingLabels = true;
   try {
-    for (let i = 0; i < library.length; i++) {
-      const entry = library[i];
-      if (cachedLabel(entry)) continue;
-      while (view === "playing") await new Promise((r) => setTimeout(r, 300));
-      try {
-        applyLabel(carts[i], await generateLabel(entry, await romBytes(entry)));
-      } catch {
-        carts[i]?.classList.remove("generating");
+    const queue = library
+      .map((entry, i) => ({ entry, i }))
+      .filter(({ entry }) => !cachedLabel(entry));
+    let next = 0;
+    // Lanes pull from one queue, so a slow ROM doesn't stall the others.
+    const lane = async (slot: number): Promise<void> => {
+      for (;;) {
+        const job = queue[next++];
+        if (!job) return;
+        while (view === "playing") await new Promise((r) => setTimeout(r, 300));
+        try {
+          const bytes = await romBytes(job.entry);
+          applyLabel(carts[job.i], await generateLabel(job.entry, bytes, slot));
+        } catch {
+          carts[job.i]?.classList.remove("generating");
+        }
       }
-    }
+    };
+    await Promise.all(Array.from({ length: LABEL_CONCURRENCY }, (_, s) => lane(s)));
   } finally {
     generatingLabels = false;
   }
