@@ -645,7 +645,15 @@ body[data-wall="plain"] #stage {
 }
 #brand span {
   color: var(--accent);
-  text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.75);
+  /* la "3" tenia su propia sombra y se comia el anillo de #brand, que es
+     precisamente la letra que lo necesita: cae sobre la barra roja */
+  text-shadow:
+    -2px 0 0 var(--outline),
+    2px 0 0 var(--outline),
+    0 -2px 0 var(--outline),
+    0 2px 0 var(--outline),
+    3px 3px 0 var(--outline),
+    0 0 16px rgba(var(--accent-rgb), 0.75);
 }
 
 @keyframes flickerIn {
@@ -902,6 +910,49 @@ body[data-wall="plain"] #stage {
   letter-spacing: 0.12em;
   margin: 0;
 }
+/* The picture behind the gallery is live — colour bars, a game running in
+   attract mode, TV static — and this text has no plate of its own, so over a
+   bright frame it washed out. A hard pixel shadow with a dark halo is what a
+   NES title screen would have done; on a dark tube it just reads as crisper.
+   Carts and buttons already carry their own backgrounds and are left alone. */
+#brand {
+  /* Anillo antes que sombra: la "3" es --accent, y sobre el patron de barras
+     cae justo en la banda roja, donde una sombra en diagonal no la despega de
+     nada. El contorno la recorta contra cualquier color de atras. */
+  text-shadow:
+    -2px 0 0 var(--outline),
+    2px 0 0 var(--outline),
+    0 -2px 0 var(--outline),
+    0 2px 0 var(--outline),
+    3px 3px 0 var(--outline),
+    0 0 16px rgb(0 0 0 / 78%),
+    0 0 14px rgb(242 230 201 / 40%);
+}
+#cart-meta {
+  text-shadow:
+    2px 2px 0 var(--outline),
+    0 0 10px rgb(0 0 0 / 78%),
+    0 0 8px rgba(var(--amber-rgb), 0.5);
+}
+/* The counter and the hint are deliberately muted, and a shadow alone doesn't
+   save muted text from a white bar, so these two get the backing plate
+   #hud-hint already uses for the same reason. Over a dark tube it reads as a
+   faint shade; over colour bars it is what makes them legible at all. */
+#cart-count,
+#tips {
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: rgb(6 4 2 / 80%);
+  text-shadow:
+    2px 2px 0 var(--outline),
+    0 0 9px rgb(0 0 0 / 78%);
+}
+/* both are blanked in some states, and an empty plate is just a floating box */
+#cart-count:empty,
+#tips:empty {
+  display: none;
+}
+
 .blink { animation: blink 1.4s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0.25; } }
 
