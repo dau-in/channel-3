@@ -11,6 +11,9 @@ export default defineConfig({
       // netplay (WebRTC broker) needs the network.
       workbox: {
         globPatterns: ["**/*.{js,css,html,woff,woff2,png,json,nes}"],
+        // og.png solo la piden los rastreadores de enlaces; precacharla
+        // le costaria 61 KB a cada visita para nada.
+        globIgnores: ["og.png"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       manifest: {
