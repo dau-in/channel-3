@@ -1,6 +1,8 @@
 <div align="center">
 
+<a href="https://channelthree.vercel.app/">
 <img src="docs/media/banner.gif" width="620" alt="Channel 3 — the shelf, over colour bars" />
+</a>
 
 # Channel 3
 
@@ -10,7 +12,10 @@ Boot it and you get static. Tune past it and there's a shelf of cartridges,
 a CRT that warms up when you switch it on and collapses to a line when you
 switch it off, and a friend one room code away.
 
+### [▶ Play it at channelthree.vercel.app](https://channelthree.vercel.app/)
+
 <p>
+<a href="https://channelthree.vercel.app/"><img alt="Live demo" src="https://img.shields.io/badge/demo-live-e0362c?style=flat-square&labelColor=120806" /></a>
 <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-e0362c?style=flat-square&labelColor=120806" />
 <img alt="WebGL" src="https://img.shields.io/badge/WebGL-CRT%20shader-ffc24b?style=flat-square&labelColor=120806" />
 <img alt="WebRTC" src="https://img.shields.io/badge/WebRTC-netplay-e0362c?style=flat-square&labelColor=120806" />
