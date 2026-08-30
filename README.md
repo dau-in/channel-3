@@ -203,12 +203,11 @@ Large states can fail to write; the app says so rather than failing quietly.
 
 ---
 
-## License
+## <img src="docs/media/icons/license.png" width="22" align="top" alt="" /> License
 
-[AGPL-3.0](LICENSE). Use it, study it, change it, share it. The one condition
-is that if you run a modified version where other people can reach it, those
-people get the source too — which for something that lives at a URL is the
-whole point of choosing this licence over MIT.
+[AGPL-3.0](LICENSE). Take it apart, rebuild it, put it on your own domain — all
+of that is fine. The one string attached is that whoever tunes in to your
+version can get at the schematics the same way you got at these.
 
-The bundled games are not covered by it; each keeps its own licence, recorded
-in [`public/roms/manifest.json`](public/roms/manifest.json).
+The bundled games are not part of that deal: each keeps its own licence,
+recorded in [`public/roms/manifest.json`](public/roms/manifest.json).
