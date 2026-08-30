@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/icons/icon-192.png" width="112" alt="" />
+<img src="docs/media/banner.gif" width="620" alt="Channel 3 — the shelf, over colour bars" />
 
 # Channel 3
 
@@ -10,11 +10,19 @@ Boot it and you get static. Tune past it and there's a shelf of cartridges,
 a CRT that warms up when you switch it on and collapses to a line when you
 switch it off, and a friend one room code away.
 
+<p>
+<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-e0362c?style=flat-square&labelColor=120806" />
+<img alt="WebGL" src="https://img.shields.io/badge/WebGL-CRT%20shader-ffc24b?style=flat-square&labelColor=120806" />
+<img alt="WebRTC" src="https://img.shields.io/badge/WebRTC-netplay-e0362c?style=flat-square&labelColor=120806" />
+<img alt="PWA" src="https://img.shields.io/badge/PWA-plays%20offline-ffc24b?style=flat-square&labelColor=120806" />
+<img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-a5836a?style=flat-square&labelColor=120806" />
+</p>
+
 </div>
 
 ---
 
-## The set
+## <img src="docs/media/icons/tv.png" width="22" align="top" alt="" /> The set
 
 |  |  |  |
 | :-: | :-: | :-: |
@@ -26,9 +34,13 @@ switch it off, and a friend one room code away.
 Five themes, six CRT presets, and none of it is a filter over a screenshot —
 the shader runs on the live framebuffer at 60 fps.
 
+<sub>The commercial games above are shown running in the emulator; none of them
+ship with it. What's bundled is twelve freely distributable homebrew titles —
+bring your own cartridges for everything else.</sub>
+
 ---
 
-## What's in it
+## <img src="docs/media/icons/cart.png" width="22" align="top" alt="" /> What's in it
 
 **A headless core.** [jsnes](https://github.com/bfirsh/jsnes) runs detached
 from any UI. Video goes from the framebuffer straight into a WebGL texture;
@@ -73,7 +85,7 @@ both players, keys and pad buttons alike.
 
 ---
 
-## Run it
+## <img src="docs/media/icons/power.png" width="22" align="top" alt="" /> Run it
 
 ```sh
 npm install
@@ -96,7 +108,7 @@ npm run preview    # serve the production build
 
 ---
 
-## Controls
+## <img src="docs/media/icons/pad.png" width="22" align="top" alt="" /> Controls
 
 | Key | | Key | |
 | --- | --- | --- | --- |
@@ -110,7 +122,7 @@ both players, and everything above is rebindable in CONFIG → CONTROLS.
 
 ---
 
-## Architecture
+## <img src="docs/media/icons/chip.png" width="22" align="top" alt="" /> Architecture
 
 ```
 src/
@@ -154,7 +166,7 @@ white borders and blue button edges don't leak through.
 
 ---
 
-## Credits
+## <img src="docs/media/icons/heart.png" width="22" align="top" alt="" /> Credits
 
 - **Emulation core** — [jsnes](https://github.com/bfirsh/jsnes), by Ben Firshman
   and contributors.
@@ -175,7 +187,7 @@ diegetic interface.
 
 ---
 
-## Known limitations
+## <img src="docs/media/icons/warn.png" width="22" align="top" alt="" /> Known limitations
 
 **Mappers.** jsnes implements 0, 1, 2, 3, 4, 5, 7, 11, 34, 38, 66, 94, 140 and
 180. Modern homebrew often ships as mapper 30 (UNROM 512) for its flash saving,
@@ -188,3 +200,15 @@ third-party service being up.
 
 **Save states live in `localStorage`**, which is a few megabytes per origin.
 Large states can fail to write; the app says so rather than failing quietly.
+
+---
+
+## License
+
+[AGPL-3.0](LICENSE). Use it, study it, change it, share it. The one condition
+is that if you run a modified version where other people can reach it, those
+people get the source too — which for something that lives at a URL is the
+whole point of choosing this licence over MIT.
+
+The bundled games are not covered by it; each keeps its own licence, recorded
+in [`public/roms/manifest.json`](public/roms/manifest.json).

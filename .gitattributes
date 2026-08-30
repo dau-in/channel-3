@@ -6,6 +6,7 @@
 # corrupts a ROM.
 *.nes   binary
 *.png   binary
+*.gif   binary
 *.ico   binary
 *.woff  binary
 *.woff2 binary
