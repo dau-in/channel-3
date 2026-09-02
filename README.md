@@ -62,9 +62,11 @@ a three-frame input delay (~50 ms) hides the round trip. The host ships the ROM
 to the guest over the data channel, so both sides start from identical memory.
 Room codes are six letters, shown like a NES password screen.
 
-**Rewind.** Hold <kbd>Backspace</kbd> and travel back about sixty seconds,
-over a ring of 120 state snapshots taken twice a second. The picture wobbles
-like a VHS while you do it.
+**Rewind.** Hold <kbd>Backspace</kbd> — or either shoulder on a pad — and
+travel back about sixty seconds, over a ring of 120 state snapshots taken
+twice a second. The picture wobbles like a VHS while you do it. Save states
+are a bookmark you have to remember to place; this is the one that works when
+you did not see it coming.
 
 **Twelve games, no ROM hunting.** All freely distributable, all credited in-app
 under CONFIG → GAME CREDITS with their license and source. Drag in your own and
@@ -115,15 +117,39 @@ npm run preview    # serve the production build
 
 ## <img src="docs/media/icons/pad.png" width="22" align="top" alt="" /> Controls
 
-| Key | | Key | |
-| --- | --- | --- | --- |
-| Arrows | D-pad | <kbd>K</kbd> / <kbd>L</kbd> | Save / load state |
-| <kbd>X</kbd> / <kbd>Z</kbd> | A / B | <kbd>Backspace</kbd> (hold) | Rewind |
-| <kbd>Enter</kbd> / <kbd>Shift</kbd> | Start / Select | <kbd>P</kbd> | Pause |
-| <kbd>V</kbd> | Link up | <kbd>F</kbd> | Fullscreen |
+### The console
 
-Player 2 shares the keyboard on WASD + Q/E. Standard-mapping gamepads work for
-both players, and everything above is rebindable in CONFIG → CONTROLS.
+|  | Player 1 | Player 2 | Gamepad |
+| --- | --- | --- | --- |
+| D-pad | Arrows | <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> | D-pad, or either stick |
+| A | <kbd>X</kbd> | <kbd>E</kbd> | East / north face buttons |
+| B | <kbd>Z</kbd> | <kbd>Q</kbd> | South / west face buttons |
+| Start | <kbd>Enter</kbd> | <kbd>2</kbd> | Start |
+| Select | <kbd>Shift</kbd> | <kbd>1</kbd> | Select |
+
+### The emulator
+
+These are not console buttons — they drive the machine the console is running
+on, so on a gamepad they live where a NES pad had nothing.
+
+|  |  | Gamepad |
+| --- | --- | --- |
+| **Rewind** (hold) | <kbd>Backspace</kbd> | Either shoulder |
+| Save state | <kbd>K</kbd> | Left stick click |
+| Load state | <kbd>L</kbd> | Right stick click |
+| Pause | <kbd>P</kbd> | — |
+| Link up | <kbd>V</kbd> | — |
+| Fullscreen | <kbd>F</kbd> | — |
+
+**If you only try one thing, make it rewind.** Hold it and the game runs
+backwards, up to a minute, and you carry on from wherever you let go. It is
+the one feature nobody finds by accident.
+
+Everything above is rebindable in CONFIG → CONTROLS, where the console
+buttons sit on a drawn pad rather than in a table — pick the button you mean
+and press what you want it to be. Controllers that do not report a standard
+layout say so there, and their d-pad can be bound even when it arrives as an
+axis rather than as buttons.
 
 ---
 
