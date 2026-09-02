@@ -1133,6 +1133,31 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   background: var(--accent-soft);
   animation: blink 0.8s steps(2) infinite;
 }
+/* Divider before the emulator actions: they belong to neither player, so the
+   grid needs to say where the console's buttons stop. */
+#controls-grid .bind-section td {
+  padding: 9px 0 3px;
+  text-align: left;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  border-top: 1px solid var(--field-border);
+}
+#controls-grid .bind-na { color: var(--dim); opacity: 0.4; font-size: 7px; }
+
+/* A pad that reports no standard layout gets a heads-up above the grid */
+#pad-notice {
+  margin: 0 0 6px;
+  padding: 5px 7px;
+  font-size: 7px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: var(--amber);
+  background: var(--field);
+  border-left: 3px solid var(--amber);
+}
+#pad-notice[hidden] { display: none; }
+
 #btn-binds-reset { width: 100%; margin-top: 2px; }
 
 #data-row { display: flex; gap: 8px; margin: 8px 0; }

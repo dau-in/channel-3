@@ -1,7 +1,11 @@
 import { Emulator, NES_WIDTH, NES_HEIGHT } from "./emulator";
 import { Renderer } from "./video";
 import { AudioPipe } from "./audio";
-import { Input, BTN, ACTIONS, defaultBinds, type Action, type Binds } from "./input";
+import {
+  Input, BTN, ACTIONS, SYS_ACTIONS, defaultBinds, defaultSysBinds,
+  isAxisCode, decodeAxis,
+  type Action, type Binds, type SysAction, type SysBinds,
+} from "./input";
 import { RewindBuffer, REWIND_INTERVAL } from "./rewind";
 import { Netplay } from "./netplay";
 import { loadManifest, fetchRom, type RomEntry } from "./roms";
@@ -1187,6 +1191,7 @@ function tick(now: number): void {
   stepPower(now);
   maybeAutosave(now);
   syncTouchControls();
+  input.pollSys(); // rewind/save/load from the pad: no events, has to be polled
 
   // A dialog owns the gamepad while it's up, on button edges only.
   const dialog = activeDialog();
@@ -1749,6 +1754,9 @@ tvSelect.addEventListener("change", () => {
 // ------------------------------------------------------- settings: binds
 
 const BINDS_KEY = "channel3-binds";
+// Separate key on purpose: the old blob is an array of two players and system
+// actions belong to neither, so bolting them in would invalidate saved binds.
+const SYS_BINDS_KEY = "channel3-sysbinds";
 
 const BIND_ROWS: { a: Action; label: string }[] = [
   { a: "up", label: "UP" },
@@ -1759,6 +1767,13 @@ const BIND_ROWS: { a: Action; label: string }[] = [
   { a: "b", label: "B" },
   { a: "select", label: "SELECT" },
   { a: "start", label: "START" },
+];
+
+const SYS_BIND_ROWS: { a: SysAction; label: string }[] = [
+  { a: "rewind", label: "REWIND" },
+  { a: "save", label: "SAVE" },
+  { a: "load", label: "LOAD" },
+  { a: "pause", label: "PAUSE" },
 ];
 
 const KEY_LABELS: Record<string, string> = {
@@ -1782,7 +1797,14 @@ function keyLabel(code: string): string {
 }
 
 const keyList = (codes: string[]) => codes.map(keyLabel).join("/") || "—";
-const padList = (idx: number[]) => idx.map((i) => `B${i}`).join("/") || "—";
+// A hat shows as an axis, so it needs a name of its own: B7 and AX9+ are not
+// the same kind of thing and the player has to be able to tell them apart.
+function padLabel(code: number): string {
+  if (!isAxisCode(code)) return `B${code}`;
+  const { axis, positive } = decodeAxis(code);
+  return `AX${axis}${positive ? "+" : "−"}`;
+}
+const padList = (idx: number[]) => idx.map(padLabel).join("/") || "—";
 
 // Stored binds are user data and may predate an action being added, so fill
 // every gap from the defaults rather than trusting the blob.
@@ -1804,6 +1826,21 @@ function normalizeBinds(raw: unknown): [Binds, Binds] | null {
   return [one(raw[0], 0), one(raw[1], 1)];
 }
 
+function normalizeSysBinds(raw: unknown): SysBinds {
+  const fallback = defaultSysBinds();
+  if (!raw || typeof raw !== "object") return fallback;
+  const src = raw as Partial<SysBinds>;
+  const key = {} as SysBinds["key"];
+  const pad = {} as SysBinds["pad"];
+  for (const a of SYS_ACTIONS) {
+    const k = src.key?.[a];
+    const p = src.pad?.[a];
+    key[a] = Array.isArray(k) ? k : fallback.key[a];
+    pad[a] = Array.isArray(p) ? p : fallback.pad[a];
+  }
+  return { key, pad };
+}
+
 function loadBinds(): void {
   try {
     const binds = normalizeBinds(JSON.parse(localStorage.getItem(BINDS_KEY) ?? "null"));
@@ -1811,36 +1848,64 @@ function loadBinds(): void {
   } catch {
     // fall back to defaults
   }
+  try {
+    input.setSysBinds(
+      normalizeSysBinds(JSON.parse(localStorage.getItem(SYS_BINDS_KEY) ?? "null")),
+    );
+  } catch {
+    input.setSysBinds(defaultSysBinds());
+  }
 }
 
 function persistBinds(): void {
   localStorage.setItem(BINDS_KEY, JSON.stringify(input.getBinds()));
+  localStorage.setItem(SYS_BINDS_KEY, JSON.stringify(input.getSysBinds()));
 }
 
 // A key can only mean one thing: strip it from every other slot first.
-function releaseKey(code: string, player: 0 | 1, action: Action): void {
+function releaseKey(code: string, player: 0 | 1 | null, keep: Action | null): void {
   const binds = input.getBinds();
   for (const p of [0, 1] as const) {
     for (const a of ACTIONS) {
-      if (p === player && a === action) continue;
+      if (p === player && a === keep) continue;
       binds[p].key[a] = binds[p].key[a].filter((c) => c !== code);
     }
   }
 }
 
 // Pad buttons only clash within their own player — both pads have a B0.
-function releasePadButton(index: number, player: 0 | 1, action: Action): void {
+// One physical input means one thing: clear it out of the system slots too,
+// or L3 could save *and* be the B button at the same time.
+function releaseSysPad(code: number, keep: SysAction | null): void {
+  const sys = input.getSysBinds();
+  for (const a of SYS_ACTIONS) {
+    if (a === keep) continue;
+    sys.pad[a] = sys.pad[a].filter((c) => c !== code);
+  }
+}
+function releaseSysKey(codeStr: string, keep: SysAction | null): void {
+  const sys = input.getSysBinds();
+  for (const a of SYS_ACTIONS) {
+    if (a === keep) continue;
+    sys.key[a] = sys.key[a].filter((c) => c !== codeStr);
+  }
+}
+
+function releasePadButton(index: number, player: 0 | 1, keep: Action | null): void {
   const binds = input.getBinds();
   for (const a of ACTIONS) {
-    if (a !== action) binds[player].pad[a] = binds[player].pad[a].filter((i) => i !== index);
+    if (a !== keep) binds[player].pad[a] = binds[player].pad[a].filter((i) => i !== index);
   }
 }
 
 interface Capture {
   player: 0 | 1;
-  action: Action;
+  action: Action | SysAction;
+  scope: "nes" | "sys";
   device: "key" | "pad";
   cell: HTMLElement;
+  /** Where the axes sat when this opened — see Input.pressedPadInput. */
+  rest: number[];
 }
 
 let capture: Capture | null = null;
@@ -1852,9 +1917,15 @@ function cancelCapture(): void {
   renderBinds();
 }
 
-function beginCapture(player: 0 | 1, action: Action, device: "key" | "pad", cell: HTMLElement): void {
+function beginCapture(
+  player: 0 | 1,
+  action: Action | SysAction,
+  scope: "nes" | "sys",
+  device: "key" | "pad",
+  cell: HTMLElement,
+): void {
   cancelCapture();
-  capture = { player, action, device, cell };
+  capture = { player, action, scope, device, cell, rest: input.padAxisRest(player) };
   cell.classList.add("capturing");
   cell.textContent = "PRESS…";
   if (device === "pad") pollPadCapture();
@@ -1863,10 +1934,19 @@ function beginCapture(player: 0 | 1, action: Action, device: "key" | "pad", cell
 // Gamepads don't fire events, so a capture has to spin on rAF.
 function pollPadCapture(): void {
   if (!capture || capture.device !== "pad") return;
-  const button = input.pressedPadButton(capture.player);
-  if (button >= 0) {
-    releasePadButton(button, capture.player, capture.action);
-    input.setPadBind(capture.player, capture.action, button);
+  const code = input.pressedPadInput(capture.player, capture.rest);
+  if (code >= 0) {
+    if (capture.scope === "nes") {
+      const action = capture.action as Action;
+      releasePadButton(code, capture.player, action);
+      releaseSysPad(code, null);
+      input.setPadBind(capture.player, action, code);
+    } else {
+      const action = capture.action as SysAction;
+      for (const p of [0, 1] as const) releasePadButton(code, p, null);
+      releaseSysPad(code, action);
+      input.setSysPadBind(action, code);
+    }
     persistBinds();
     sfx.select();
     cancelCapture();
@@ -1890,8 +1970,17 @@ window.addEventListener(
     if (capture.device !== "key") return;
     e.preventDefault();
     e.stopPropagation();
-    releaseKey(e.code, capture.player, capture.action);
-    input.setKeyBind(capture.player, capture.action, e.code);
+    if (capture.scope === "nes") {
+      const action = capture.action as Action;
+      releaseKey(e.code, capture.player, action);
+      releaseSysKey(e.code, null);
+      input.setKeyBind(capture.player, action, e.code);
+    } else {
+      const action = capture.action as SysAction;
+      releaseKey(e.code, null, null);
+      releaseSysKey(e.code, action);
+      input.setSysKeyBind(action, e.code);
+    }
     persistBinds();
     sfx.select();
     cancelCapture();
@@ -1924,14 +2013,72 @@ function renderBinds(): void {
       btn.className = "bind";
       btn.type = "button";
       btn.textContent = text;
-      btn.addEventListener("click", () => beginCapture(player, a, device, btn));
+      btn.addEventListener("click", () => beginCapture(player, a, "nes", device, btn));
       td.appendChild(btn);
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
   }
+
+  // Rewind, save, load and pause drive the emulator rather than the console,
+  // so they are shared by both players and only fill the first two columns.
+  const sys = input.getSysBinds();
+  const head = document.createElement("tr");
+  head.className = "bind-section";
+  const headCell = document.createElement("td");
+  headCell.colSpan = 5;
+  headCell.textContent = "EMULATOR";
+  head.appendChild(headCell);
+  tbody.appendChild(head);
+
+  for (const { a, label } of SYS_BIND_ROWS) {
+    const tr = document.createElement("tr");
+    const th = document.createElement("td");
+    th.className = "action";
+    th.textContent = label;
+    tr.appendChild(th);
+    const cells: ["key" | "pad", string][] = [
+      ["key", keyList(sys.key[a])],
+      ["pad", padList(sys.pad[a])],
+    ];
+    for (const [device, text] of cells) {
+      const td = document.createElement("td");
+      const btn = document.createElement("button");
+      btn.className = "bind";
+      btn.type = "button";
+      btn.textContent = text;
+      btn.addEventListener("click", () => beginCapture(0, a, "sys", device, btn));
+      td.appendChild(btn);
+      tr.appendChild(td);
+    }
+    for (let i = 0; i < 2; i++) {
+      const td = document.createElement("td");
+      td.className = "bind-na";
+      td.textContent = "—";
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+
   table.appendChild(tbody);
+  showPadNotice();
   updateHudHint();
+}
+
+/** A pad that does not report the standard layout has arbitrary indices, so
+ *  the defaults mean nothing on it. Say so instead of letting the player
+ *  conclude their controller is broken. */
+function showPadNotice(): void {
+  const note = $("#pad-notice");
+  const info = input.padInfo(0);
+  if (!info || info.standard) {
+    note.hidden = true;
+    return;
+  }
+  note.textContent =
+    `THIS PAD DOESN'T REPORT A STANDARD LAYOUT (${info.buttons} BUTTONS, ` +
+    `${info.axes} AXES) — SET THE ROWS BELOW YOURSELF.`;
+  note.hidden = false;
 }
 
 // The HUD hint has to follow whatever P1 rebound their keys to.
