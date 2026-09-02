@@ -1893,7 +1893,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 .settings-box {
   width: min(680px, 94%);
   max-height: 90%;
-  overflow-y: visible;
+  overflow: hidden;
 }
 
 /* --------------------------------------------- CONFIG: the pad, drawn out */
