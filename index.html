@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Channel 3 — NES emulator with netplay</title>
+    <title>Channel 3 — a NES that behaves like a television</title>
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
@@ -148,117 +148,127 @@
               <section id="view-settings" hidden>
                 <div class="nes-container is-dark with-title settings-box">
                   <p class="title">CONFIG</p>
-                  <p class="cfg-sec">SCREEN</p>
-                  <label class="select-row">TV STYLE
-                    <select id="tv-select">
-                      <option value="full">FULL SET</option>
-                      <option value="minimal">MINIMAL</option>
-                    </select>
-                  </label>
-                  <label class="select-row">CRT PRESET
-                    <select id="crt-preset">
-                      <option value="off">OFF (RAW PIXELS)</option>
-                      <option value="scanlines">SCANLINES</option>
-                      <option value="tube">CURVED TUBE</option>
-                      <option value="rgb">RGB MONITOR</option>
-                      <option value="vhs">WORN VHS</option>
-                      <option value="custom">CUSTOM</option>
-                    </select>
-                  </label>
-                  <div id="crt-sliders" hidden>
-                  <label>CURVE<input type="range" id="crt-curvature" min="0" max="100" value="0" /></label>
-<label>SCANLINES<input type="range" id="crt-scanline" min="0" max="100" value="0" /></label>
-<label>MASK<input type="range" id="crt-mask" min="0" max="100" value="0" /></label>
-<label>GLOW<input type="range" id="crt-glow" min="0" max="100" value="0" /></label>
-<label>FRINGE<input type="range" id="crt-aberration" min="0" max="100" value="0" /></label>
-<label>VIGNETTE<input type="range" id="crt-vignette" min="0" max="100" value="0" /></label>
-                  </div>
-                  <label class="select-row">FILTER
-                    <select id="filter-select">
-                      <option value="nearest">PIXEL PERFECT</option>
-                      <option value="smooth">SMOOTH</option>
-                      <option value="epx">SCALE2X (EPX)</option>
-                    </select>
-                  </label>
-                  <p class="cfg-sec">SOUND</p>
-                  <label>VOLUME<input type="range" id="volume-cfg" min="0" max="100" value="100" /></label>
-                  <p class="cfg-sec">ROOM</p>
-                  <label class="select-row">THEME
-                    <select id="theme-select">
-                      <option value="famicom">FAMICOM</option>
-                      <option value="ghost">GHOST SLATE</option>
-                      <option value="twilight">TWILIGHT PURPLE</option>
-                      <option value="phosphor">PHOSPHOR GREEN</option>
-                      <option value="ice">ICE &amp; NEON</option>
-                    </select>
-                  </label>
-                  <label class="select-row">IDLE SCREEN
-                    <select id="idle-select">
-                      <option value="previews">GAME PREVIEWS</option>
-                      <option value="static">TV STATIC</option>
-                      <option value="bars">COLOUR BARS</option>
-                      <option value="blank">BLANK TUBE</option>
-                    </select>
-                  </label>
-                  <label class="select-row">WALL
-                    <select id="wall-select">
-                      <option value="diamonds">DIAMONDS</option>
-                      <option value="dots">DOTS</option>
-                      <option value="checker">CHECKER</option>
-                      <option value="plain">PLAIN</option>
-                    </select>
-                  </label>
-                  <p class="cfg-sec">INPUT</p>
-                  <label class="select-row touch-only">TOUCH PAD
-                    <select id="touch-select">
-                      <option value="auto">AUTO (MOBILE, NO GAMEPAD)</option>
-                      <option value="on">ALWAYS ON</option>
-                      <option value="off">OFF</option>
-                    </select>
-                  </label>
-                  <label class="select-row touch-only">TOUCH SIZE
-                    <select id="touch-size-select">
-                      <option value="s">SMALL</option>
-                      <option value="m">MEDIUM</option>
-                      <option value="l">LARGE</option>
-                    </select>
-                  </label>
-                  <details id="controls-cfg">
-                    <summary>CONTROLS</summary>
-                    <div id="controls-scroll">
+                  <div id="cfg-body">
+                    <nav id="cfg-rail" aria-label="Settings sections">
+                      <button type="button" class="cfg-tab" data-page="picture">PICTURE</button>
+                      <button type="button" class="cfg-tab" data-page="room">ROOM</button>
+                      <button type="button" class="cfg-tab" data-page="controls">CONTROLS</button>
+                      <button type="button" class="cfg-tab" data-page="system">SYSTEM</button>
+                    </nav>
+                    <div id="cfg-pages">
+                    <section class="cfg-page" data-page="picture" hidden>
+                      <label class="select-row">TV STYLE
+                        <select id="tv-select">
+                          <option value="full">FULL SET</option>
+                          <option value="minimal">MINIMAL</option>
+                        </select>
+                      </label>
+                      <p class="cfg-lbl">CRT PRESET</p>
+                      <div id="crt-cards" class="cfg-cards"></div>
+                      <select id="crt-preset" hidden>
+                        <option value="off">OFF (RAW PIXELS)</option>
+                        <option value="scanlines">SCANLINES</option>
+                        <option value="tube">CURVED TUBE</option>
+                        <option value="rgb">RGB MONITOR</option>
+                        <option value="vhs">WORN VHS</option>
+                        <option value="custom">CUSTOM</option>
+                      </select>
+                      <div id="crt-sliders" hidden>
+                        <label>CURVE<input type="range" id="crt-curvature" min="0" max="100" value="0" /></label>
+                        <label>SCANLINES<input type="range" id="crt-scanline" min="0" max="100" value="0" /></label>
+                        <label>MASK<input type="range" id="crt-mask" min="0" max="100" value="0" /></label>
+                        <label>GLOW<input type="range" id="crt-glow" min="0" max="100" value="0" /></label>
+                        <label>FRINGE<input type="range" id="crt-aberration" min="0" max="100" value="0" /></label>
+                        <label>VIGNETTE<input type="range" id="crt-vignette" min="0" max="100" value="0" /></label>
+                      </div>
+                      <label class="select-row">FILTER
+                        <select id="filter-select">
+                          <option value="nearest">PIXEL PERFECT</option>
+                          <option value="smooth">SMOOTH</option>
+                          <option value="epx">SCALE2X (EPX)</option>
+                        </select>
+                      </label>
+                    </section>
+                    <section class="cfg-page" data-page="room" hidden>
+                      <p class="cfg-lbl">THEME</p>
+                      <div id="theme-cards" class="cfg-cards"></div>
+                      <select id="theme-select" hidden>
+                        <option value="famicom">FAMICOM</option>
+                        <option value="ghost">GHOST SLATE</option>
+                        <option value="twilight">TWILIGHT PURPLE</option>
+                        <option value="phosphor">PHOSPHOR GREEN</option>
+                        <option value="ice">ICE &amp; NEON</option>
+                      </select>
+                      <label class="select-row">IDLE SCREEN
+                        <select id="idle-select">
+                          <option value="previews">GAME PREVIEWS</option>
+                          <option value="static">TV STATIC</option>
+                          <option value="bars">COLOUR BARS</option>
+                          <option value="blank">BLANK TUBE</option>
+                        </select>
+                      </label>
+                      <label class="select-row">WALL
+                        <select id="wall-select">
+                          <option value="diamonds">DIAMONDS</option>
+                          <option value="dots">DOTS</option>
+                          <option value="checker">CHECKER</option>
+                          <option value="plain">PLAIN</option>
+                        </select>
+                      </label>
+                    </section>
+                    <section class="cfg-page" data-page="controls" hidden>
                       <p id="pad-notice" hidden></p>
-                      <table id="controls-grid"></table>
+                      <div id="controls-scroll">
+                        <table id="controls-grid"></table>
+                      </div>
+                      <button class="nes-btn is-small" id="btn-binds-reset">RESET DEFAULTS</button>
+                      <p class="dim">CLICK A CELL, THEN PRESS A KEY OR GAMEPAD BUTTON &middot; ESC CANCELS. THE STICK ALWAYS WORKS AS A D-PAD.</p>
+                      <label class="select-row touch-only">TOUCH PAD
+                        <select id="touch-select">
+                          <option value="auto">AUTO (MOBILE, NO GAMEPAD)</option>
+                          <option value="on">ALWAYS ON</option>
+                          <option value="off">OFF</option>
+                        </select>
+                      </label>
+                      <label class="select-row touch-only">TOUCH SIZE
+                        <select id="touch-size-select">
+                          <option value="s">SMALL</option>
+                          <option value="m">MEDIUM</option>
+                          <option value="l">LARGE</option>
+                        </select>
+                      </label>
+                    </section>
+                    <section class="cfg-page" data-page="system" hidden>
+                      <label>VOLUME<input type="range" id="volume-cfg" min="0" max="100" value="100" /></label>
+                      <label class="crt-row"><input type="checkbox" class="nes-checkbox is-dark" id="autosave-on" checked /><span>AUTO SAVE</span></label>
+                      <details id="my-data">
+                        <summary>MY ROMS &amp; DATA</summary>
+                        <p class="dim" id="storage-usage" style="text-align:left"></p>
+                        <div id="data-row">
+                          <button class="nes-btn is-small" id="btn-backup">BACKUP SAVES</button>
+                          <button class="nes-btn is-small" id="btn-restore">RESTORE</button>
+                        </div>
+                        <button class="nes-btn is-small is-error" id="btn-wipe">DELETE ALL MY ROMS &amp; SAVES</button>
+                        <p class="dim" style="text-align:left">CLEARING THIS BROWSER&rsquo;S SITE DATA (OR HISTORY) ALSO ERASES YOUR ADDED ROMS AND SAVES.</p>
+                      </details>
+                      <details id="credits">
+                        <summary>GAME CREDITS &amp; LICENSES</summary>
+                        <ul id="credits-list"></ul>
+                      </details>
+                      <details id="about">
+                        <summary>ABOUT</summary>
+                        <ul id="about-list">
+                          <li><i class="nes-icon heart is-small"></i> MADE BY <a href="https://github.com/dau-in" target="_blank" rel="noreferrer">Dauin</a></li>
+                          <li><i class="nes-icon github is-small"></i> <a id="repo-link" href="https://github.com/dau-in" target="_blank" rel="noreferrer">SOURCE CODE</a></li>
+                          <li><i class="nes-icon star is-small"></i> POWERED BY <a href="https://github.com/bfirsh/jsnes" target="_blank" rel="noreferrer">jsnes</a> &middot; <a href="https://peerjs.com" target="_blank" rel="noreferrer">peerjs</a> &middot; <a href="https://nostalgic-css.github.io/NES.css/" target="_blank" rel="noreferrer">NES.css</a></li>
+                          <li><i class="nes-icon trophy is-small"></i> CRT SHADER, LOCKSTEP NETPLAY, REWIND &amp; UI BUILT FOR THIS PROJECT</li>
+                          <li><i class="nes-icon coin is-small"></i> ADDED-ROM TITLES FROM <a href="https://github.com/libretro/libretro-database" target="_blank" rel="noreferrer">libretro-database</a> (NO-INTRO)</li>
+                        </ul>
+                      </details>
+                    </section>
                     </div>
-                    <button class="nes-btn is-small" id="btn-binds-reset">RESET DEFAULTS</button>
-                    <p class="dim">CLICK A CELL, THEN PRESS A KEY OR GAMEPAD BUTTON · ESC CANCELS. THE STICK ALWAYS WORKS AS A D-PAD.</p>
-                  </details>
-                  <p class="cfg-sec">DATA</p>
-                  <label class="crt-row"><input type="checkbox" class="nes-checkbox is-dark" id="autosave-on" checked /><span>AUTO SAVE</span></label>
-                  <details id="my-data">
-                    <summary>MY ROMS &amp; DATA</summary>
-                    <p class="dim" id="storage-usage" style="text-align:left"></p>
-                    <div id="data-row">
-                      <button class="nes-btn is-small" id="btn-backup">BACKUP SAVES</button>
-                      <button class="nes-btn is-small" id="btn-restore">RESTORE</button>
-                    </div>
-                    <button class="nes-btn is-small is-error" id="btn-wipe">DELETE ALL MY ROMS &amp; SAVES</button>
-                    <p class="dim" style="text-align:left">CLEARING THIS BROWSER'S SITE DATA (OR HISTORY) ALSO ERASES YOUR ADDED ROMS AND SAVES.</p>
-                  </details>
-                  <details id="credits">
-                    <summary>GAME CREDITS &amp; LICENSES</summary>
-                    <ul id="credits-list"></ul>
-                  </details>
-                  <details id="about">
-                    <summary>ABOUT</summary>
-                    <ul id="about-list">
-                      <li><i class="nes-icon heart is-small"></i> MADE BY <a href="https://github.com/dau-in" target="_blank" rel="noreferrer">Dauin</a></li>
-                      <li><i class="nes-icon github is-small"></i> <a id="repo-link" href="https://github.com/dau-in" target="_blank" rel="noreferrer">SOURCE CODE</a></li>
-                      <li><i class="nes-icon star is-small"></i> POWERED BY <a href="https://github.com/bfirsh/jsnes" target="_blank" rel="noreferrer">jsnes</a> · <a href="https://peerjs.com" target="_blank" rel="noreferrer">peerjs</a> · <a href="https://nostalgic-css.github.io/NES.css/" target="_blank" rel="noreferrer">NES.css</a></li>
-                      <li><i class="nes-icon trophy is-small"></i> CRT SHADER, LOCKSTEP NETPLAY, REWIND &amp; UI BUILT FOR THIS PROJECT</li>
-                      <li><i class="nes-icon coin is-small"></i> ADDED-ROM TITLES FROM <a href="https://github.com/libretro/libretro-database" target="_blank" rel="noreferrer">libretro-database</a> (NO-INTRO)</li>
-                    </ul>
-                  </details>
-                  <button class="nes-btn close-x" id="btn-settings-close">✕</button>
+                  </div>
+                  <button class="nes-btn close-x" id="btn-settings-close">&#10005;</button>
                 </div>
               </section>
 

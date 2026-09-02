@@ -1627,6 +1627,105 @@ function applyTheme(v: string): void {
   else document.body.dataset.theme = v;
 }
 
+// ------------------------------------------------------- CONFIG: pages
+
+// Thirteen rows in one scroller was already a lot, and a preview grid is a
+// grid: stack three of them and nothing is findable. One page at a time, on a
+// rail — which is what a television's own on-screen menu always was.
+function showCfgPage(name: string): void {
+  for (const page of document.querySelectorAll<HTMLElement>(".cfg-page")) {
+    page.hidden = page.dataset.page !== name;
+  }
+  for (const tab of document.querySelectorAll<HTMLElement>(".cfg-tab")) {
+    tab.classList.toggle("on", tab.dataset.page === name);
+  }
+}
+
+for (const tab of document.querySelectorAll<HTMLElement>(".cfg-tab")) {
+  tab.addEventListener("click", () => {
+    showCfgPage(tab.dataset.page ?? "picture");
+    sfx.select();
+  });
+}
+showCfgPage("picture");
+
+// ------------------------------------------------- CONFIG: preview cards
+
+/** Cards are a face for a <select>, never a replacement: the select stays the
+ *  model every existing listener is already wired to, so this is a view
+ *  change and nothing downstream has to know. */
+function buildCards(
+  container: HTMLElement,
+  select: HTMLSelectElement,
+  face: (value: string) => HTMLElement,
+): void {
+  container.innerHTML = "";
+  for (const opt of Array.from(select.options)) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "cfg-card";
+    card.dataset.value = opt.value;
+    card.appendChild(face(opt.value));
+    const cap = document.createElement("span");
+    cap.className = "cfg-card-cap";
+    cap.textContent = opt.textContent ?? opt.value;
+    card.appendChild(cap);
+    card.addEventListener("click", () => {
+      select.value = opt.value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      syncCards(container, select);
+    });
+    container.appendChild(card);
+  }
+  syncCards(container, select);
+}
+
+function syncCards(container: HTMLElement, select: HTMLSelectElement): void {
+  for (const card of container.querySelectorAll<HTMLElement>(".cfg-card")) {
+    card.classList.toggle("on", card.dataset.value === select.value);
+  }
+}
+
+/** Read a theme's palette from the CSS itself rather than repeating the
+ *  colours here — the rule is that no literal colour lives outside a palette
+ *  block, and a duplicated list would drift the first time one is edited.
+ *  The swap and the restore happen in the same task, so nothing paints. */
+const SWATCH_VARS = ["--chassis", "--accent", "--amber", "--paper"];
+
+function themeSwatches(theme: string): string[] {
+  const body = document.body;
+  const prev = body.dataset.theme;
+  applyTheme(theme);
+  const cs = getComputedStyle(body);
+  const out = SWATCH_VARS.map((v) => cs.getPropertyValue(v).trim());
+  if (prev === undefined) delete body.dataset.theme;
+  else body.dataset.theme = prev;
+  return out;
+}
+
+function themeFace(value: string): HTMLElement {
+  const face = document.createElement("span");
+  face.className = "cfg-face theme-face";
+  for (const colour of themeSwatches(value)) {
+    const chip = document.createElement("span");
+    chip.className = "theme-chip";
+    chip.style.background = colour;
+    face.appendChild(chip);
+  }
+  return face;
+}
+
+function crtFace(value: string): HTMLElement {
+  const face = document.createElement("span");
+  face.className = `cfg-face crt-face crt-face-${value}`;
+  return face;
+}
+
+function renderCfgCards(): void {
+  buildCards($("#theme-cards"), themeSelect, themeFace);
+  buildCards($("#crt-cards"), $<HTMLSelectElement>("#crt-preset"), crtFace);
+}
+
 themeSelect.value = settings.theme;
 applyTheme(settings.theme);
 themeSelect.addEventListener("change", () => {
@@ -2691,5 +2790,6 @@ void (async () => {
   renderCarousel();
   syncViews();
   renderCredits();
+  renderCfgCards();
   void generateMissingLabels();
 })();

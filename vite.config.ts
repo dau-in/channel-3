@@ -17,10 +17,10 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       manifest: {
-        name: "Channel 3 — NES emulator",
+        name: "Channel 3 — a NES that behaves like a television",
         short_name: "Channel 3",
         description:
-          "NES emulator with CRT shader, P2P netplay, rewind and a built-in homebrew library.",
+          "A Nintendo Entertainment System that lives in a browser tab and behaves like a television: a real CRT pipeline, P2P netplay, 60-second rewind, and twelve homebrew games that keep working offline.",
         display: "standalone",
         orientation: "landscape",
         background_color: "#120806",
