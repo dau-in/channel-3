@@ -546,6 +546,7 @@ async function launchGame(name: string, bytes: Uint8Array, opts: LaunchOpts = {}
   showChannel(opts.channel ?? "AV");
   if (opts.mine) checkCompatibility(key);
   if (!opts.fromNet) showTouchHint();
+  if (!opts.fromNet) maybeWarnSilentSwitch();
 
   if (!hasSave) return;
 
@@ -1011,8 +1012,39 @@ interface OrientationLock {
   unlock?: () => void;
 }
 
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && (navigator.maxTouchPoints ?? 0) > 1);
+
+/** Installed to the home screen, so the browser chrome is already gone. */
+function isStandalone(): boolean {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as unknown as { standalone?: boolean }).standalone === true
+  );
+}
+
+/** Safari on iPhone implements no Fullscreen API on elements at all, so
+ *  `requestFullscreen` is undefined there. The old code called it anyway:
+ *  that throws *synchronously*, before any promise exists, so the .catch()
+ *  never got the chance to attach and the whole click handler died. */
+function fullscreenSupported(): boolean {
+  return (
+    typeof stage.requestFullscreen === "function" &&
+    typeof document.exitFullscreen === "function"
+  );
+}
+
 function toggleFullscreen(): void {
   const orientation = screen.orientation as unknown as OrientationLock | undefined;
+  if (!fullscreenSupported()) {
+    // Nothing to fall back to on iPhone — the chromeless view comes from
+    // installing the app, so point at that instead of failing silently.
+    if (!isStandalone()) {
+      showTubeHint("#ios-hint", "FOR FULLSCREEN · SHARE → ADD TO HOME SCREEN");
+    }
+    return;
+  }
   if (document.fullscreenElement) {
     try {
       orientation?.unlock?.();
@@ -1033,6 +1065,14 @@ function toggleFullscreen(): void {
   }
 }
 
+// Already installed and with no Fullscreen API: the button can do nothing at
+// all, so it goes rather than lying.
+if (!fullscreenSupported() && isStandalone()) {
+  $("#btn-fullscreen").hidden = true;
+  for (const el of document.querySelectorAll<HTMLElement>(".chin-fallback")) {
+    if (el.id === "btn-fullscreen") el.hidden = true;
+  }
+}
 $("#btn-fullscreen").addEventListener("click", toggleFullscreen);
 
 // Cutting the power mid-game would throw away unsaved progress, so while
@@ -2104,13 +2144,36 @@ touchSizeSelect.addEventListener("change", () => {
   sfx.select();
 });
 
-function showTouchHint(): void {
-  if (!touchWanted()) return;
-  const hint = $("#touch-hint");
+function showTubeHint(sel: string, text?: string): void {
+  const hint = $(sel);
+  if (text !== undefined) hint.textContent = text;
   hint.hidden = true;
-  void hint.offsetWidth;
+  void hint.offsetWidth; // restart the CSS animation
   hint.hidden = false;
   setTimeout(() => (hint.hidden = true), 3700);
+}
+
+function showTouchHint(): void {
+  if (!touchWanted()) return;
+  showTubeHint("#touch-hint");
+}
+
+// iOS mutes a page that only uses WebAudio when the ringer switch is off,
+// which is why sound "worked once, out of nowhere". `audioSession` fixes it
+// outright on iOS 17+; below that the only thing left is telling the player.
+// Said once per install, on the first game, because the switch cannot be read.
+const IOS_HINT_KEY = "channel3-ios-audio-hint";
+
+function maybeWarnSilentSwitch(): void {
+  if (!isIOS) return;
+  if ("audioSession" in navigator) return; // handled properly, no need to nag
+  if (localStorage.getItem(IOS_HINT_KEY)) return;
+  try {
+    localStorage.setItem(IOS_HINT_KEY, "1");
+  } catch {
+    // storage full: showing it twice beats not showing it
+  }
+  setTimeout(() => showTubeHint("#ios-hint", "NO SOUND? CHECK THE SIDE SWITCH"), 1200);
 }
 
 // --------------------------------------------------- removing added roms
@@ -2404,6 +2467,17 @@ let audioStarted = false;
 // Browsers only allow an AudioContext to start inside a gesture, so the
 // first interaction of any kind arms it.
 function unlockAudio(): void {
+  // Declaring the session as playback makes iOS stop honouring the ringer
+  // switch for this page. Has to happen before the context does any work.
+  const session = (navigator as unknown as { audioSession?: { type: string } })
+    .audioSession;
+  if (session) {
+    try {
+      session.type = "playback";
+    } catch {
+      // older WebKit exposes the object but rejects the value
+    }
+  }
   audio.resume();
   setSfxContext(audio.ctx);
   emu.setSampleRate(audio.sampleRate);

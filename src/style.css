@@ -960,9 +960,9 @@ body[data-wall="plain"] #stage {
 
 /* persistent MENU button (touch): a clear, corner-anchored control that opens
    the HUD bar. Replaces the old pull-down affordance, which was ambiguous. */
-/* subtle one-time gesture hint shown on entering a game (touch): tap = menu,
-   double-tap = fullscreen. */
-#touch-hint {
+/* One-time hints that drop from the top of the tube: the touch gesture note,
+   and the iPhone sound warning. Same toast, different message. */
+.tube-hint {
   position: absolute;
   top: 10px;
   left: 50%;
@@ -975,11 +975,12 @@ body[data-wall="plain"] #stage {
   color: var(--paper);
   font-size: clamp(7px, 1.5vmin, 10px);
   letter-spacing: 0.06em;
-  white-space: nowrap;
+  max-width: 86%;
+  text-align: center;
   pointer-events: none;
   animation: touchHintFade 3.6s ease-in-out forwards;
 }
-#touch-hint[hidden] { display: none; }
+.tube-hint[hidden] { display: none; }
 @keyframes touchHintFade {
   0% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
   12%, 74% { opacity: 1; transform: translateX(-50%) translateY(0); }
