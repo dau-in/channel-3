@@ -1080,6 +1080,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   width: min(440px, 88%);
   max-height: 88%;
   overflow-y: auto;
+  overscroll-behavior: contain;
   /* a slim, on-theme scrollbar so the player can tell the panel scrolls */
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--amber-rgb), 0.45) transparent;
@@ -1885,3 +1886,185 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   .cfg-tab { flex: 1 1 0; text-align: center; padding: 7px 3px; }
   #cfg-pages { height: 46vh; width: 100%; }
 }
+
+
+/* ------------------------------------------- CONFIG: one scroll, not three */
+
+.settings-box {
+  width: min(680px, 94%);
+  max-height: 90%;
+  overflow-y: visible;
+}
+
+/* --------------------------------------------- CONFIG: the pad, drawn out */
+
+#pad-switches {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.pad-switch { display: flex; }
+.pad-opt {
+  font-family: "Silkscreen", monospace;
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  padding: 5px 9px;
+  cursor: pointer;
+  color: var(--dim);
+  background: var(--field);
+  border: 2px solid var(--field-border);
+}
+.pad-opt + .pad-opt { border-left-width: 0; }
+.pad-opt:hover { color: var(--amber); }
+.pad-opt.on {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+#pad-diagram { display: flex; justify-content: center; margin: 4px 0 10px; }
+
+/* A real NES pad is a wide rectangle: cross on the left, the two pills in the
+   middle, B and A on the right. Laying the bindings on that shape means the
+   player reads the position instead of a row label. */
+.pad-shell {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  background: var(--chassis);
+  border: 3px solid var(--outline);
+  box-shadow: inset 0 2px 0 var(--chassis-hi), inset 0 -3px 0 var(--chassis-lo);
+}
+
+.pad-cross {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(34px, 1fr));
+  grid-template-rows: repeat(3, auto);
+  gap: 2px;
+}
+.pad-cross [data-action="up"] { grid-area: 1 / 2; }
+.pad-cross [data-action="left"] { grid-area: 2 / 1; }
+.pad-cross [data-action="right"] { grid-area: 2 / 3; }
+.pad-cross [data-action="down"] { grid-area: 3 / 2; }
+
+.pad-centre { display: flex; flex-direction: column; gap: 5px; }
+.pad-faces { display: flex; gap: 6px; }
+
+.pad-key {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 4px 5px;
+  cursor: pointer;
+  font-family: "Silkscreen", monospace;
+  background: var(--btn);
+  color: var(--paper);
+  border: 2px solid var(--outline);
+}
+.pad-key:hover { border-color: var(--amber); }
+.pad-key.capturing {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  animation: blink 0.8s steps(2) infinite;
+}
+.pad-key-name { font-size: 5px; letter-spacing: 0.06em; color: var(--dim); }
+.pad-key-val { font-size: 7px; letter-spacing: 0.02em; white-space: nowrap; }
+.pad-key.capturing .pad-key-name { color: inherit; }
+
+.pad-pill { min-width: 62px; min-height: 22px; border-radius: 11px; }
+.pad-round {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.pad-round .pad-key-name { color: var(--accent-text); opacity: 0.7; }
+
+/* Small screens: the pad stacks instead of squeezing every button to nothing */
+@media (max-width: 560px), (orientation: portrait) {
+  .pad-shell {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 10px;
+  }
+  .pad-faces { justify-content: center; }
+}
+
+/* ------------------------------------------------ CONFIG: the other faces */
+
+.tv-face, .filter-face, .idle-face, .wall-face {
+  position: relative;
+  background: var(--outline);
+}
+.tv-face::before {
+  content: "";
+  position: absolute;
+  inset: 5px 8px;
+  background: var(--accent-soft);
+  border: 2px solid var(--chassis);
+}
+.tv-face-minimal::before { inset: 2px 3px; border-width: 1px; }
+
+/* pixels: sharp, blurred, and smoothed at the corners */
+.filter-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-conic-gradient(var(--accent) 0 25%, var(--amber) 0 50%) 0 0 / 12px 12px;
+}
+.filter-face-smooth::before { filter: blur(2.5px); }
+.filter-face-epx::before { filter: blur(0.8px) contrast(1.4); }
+
+.idle-face-previews::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, var(--accent), var(--amber));
+}
+.idle-face-static::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(var(--paper) 0 25%, var(--outline) 0 50%) 0 0 / 3px 3px;
+  opacity: 0.55;
+}
+.idle-face-bars::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right,
+    #c0c0c0 0 14.2%, #c0c000 0 28.5%, #00c0c0 0 42.8%, #00c000 0 57.1%,
+    #c000c0 0 71.4%, #c00000 0 85.7%, #0000c0 0 100%);
+}
+.idle-face-blank::before { content: ""; position: absolute; inset: 0; background: var(--outline); }
+
+.wall-face { background: var(--bg); }
+.wall-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+.wall-face-diamonds::before {
+  background: repeating-conic-gradient(from 45deg,
+    var(--chassis-lo) 0 25%, transparent 0 50%) 0 0 / 10px 10px;
+}
+.wall-face-dots::before {
+  background: radial-gradient(var(--chassis-lo) 1.2px, transparent 1.3px) 0 0 / 7px 7px;
+}
+.wall-face-checker::before {
+  background: repeating-conic-gradient(
+    var(--chassis-lo) 0 25%, transparent 0 50%) 0 0 / 12px 12px;
+}
+.wall-face-plain::before { background: none; }

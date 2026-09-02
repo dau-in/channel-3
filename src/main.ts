@@ -1715,15 +1715,25 @@ function themeFace(value: string): HTMLElement {
   return face;
 }
 
-function crtFace(value: string): HTMLElement {
-  const face = document.createElement("span");
-  face.className = `cfg-face crt-face crt-face-${value}`;
-  return face;
+/** Every remaining picker draws the same way: a face whose class says which
+ *  variant it is, and the CSS does the rest. */
+function classFace(kind: string): (value: string) => HTMLElement {
+  return (value: string) => {
+    const face = document.createElement("span");
+    face.className = `cfg-face ${kind}-face ${kind}-face-${value}`;
+    return face;
+  };
 }
+
+const crtFace = classFace("crt");
 
 function renderCfgCards(): void {
   buildCards($("#theme-cards"), themeSelect, themeFace);
   buildCards($("#crt-cards"), $<HTMLSelectElement>("#crt-preset"), crtFace);
+  buildCards($("#tv-cards"), $<HTMLSelectElement>("#tv-select"), classFace("tv"));
+  buildCards($("#filter-cards"), $<HTMLSelectElement>("#filter-select"), classFace("filter"));
+  buildCards($("#idle-cards"), $<HTMLSelectElement>("#idle-select"), classFace("idle"));
+  buildCards($("#wall-cards"), $<HTMLSelectElement>("#wall-select"), classFace("wall"));
 }
 
 themeSelect.value = settings.theme;
@@ -2026,7 +2036,8 @@ function beginCapture(
   cancelCapture();
   capture = { player, action, scope, device, cell, rest: input.padAxisRest(player) };
   cell.classList.add("capturing");
-  cell.textContent = "PRESS…";
+  const slot = cell.querySelector(".pad-key-val") ?? cell;
+  slot.textContent = "PRESS…";
   if (device === "pad") pollPadCapture();
 }
 
@@ -2087,49 +2098,51 @@ window.addEventListener(
   true,
 );
 
-function renderBinds(): void {
-  const table = $("#controls-grid");
-  if (!table) return;
-  const binds = input.getBinds();
-  table.innerHTML =
-    "<thead><tr><th></th><th>P1 KEY</th><th>P1 PAD</th><th>P2 KEY</th><th>P2 PAD</th></tr></thead>";
-  const tbody = document.createElement("tbody");
-  for (const { a, label } of BIND_ROWS) {
-    const tr = document.createElement("tr");
-    const th = document.createElement("td");
-    th.className = "action";
-    th.textContent = label;
-    tr.appendChild(th);
-    const cells: [0 | 1, "key" | "pad", string][] = [
-      [0, "key", keyList(binds[0].key[a])],
-      [0, "pad", padList(binds[0].pad[a])],
-      [1, "key", keyList(binds[1].key[a])],
-      [1, "pad", padList(binds[1].pad[a])],
-    ];
-    for (const [player, device, text] of cells) {
-      const td = document.createElement("td");
-      const btn = document.createElement("button");
-      btn.className = "bind";
-      btn.type = "button";
-      btn.textContent = text;
-      btn.addEventListener("click", () => beginCapture(player, a, "nes", device, btn));
-      td.appendChild(btn);
-      tr.appendChild(td);
-    }
-    tbody.appendChild(tr);
+// Which player and which device the diagram is showing. Two switches instead
+// of four columns: the table was action + P1 KEY + P1 PAD + P2 KEY + P2 PAD,
+// far wider than the panel, and that is where the horizontal scroll came from.
+let padPlayer: 0 | 1 = 0;
+let padDevice: "key" | "pad" = "key";
+
+const PAD_LABELS = Object.fromEntries(
+  BIND_ROWS.map(({ a, label }) => [a, label]),
+) as Record<Action, string>;
+
+function bindText(action: Action): string {
+  const binds = input.getBinds()[padPlayer];
+  return padDevice === "key" ? keyList(binds.key[action]) : padList(binds.pad[action]);
+}
+
+function renderPadDiagram(): void {
+  for (const el of document.querySelectorAll<HTMLElement>("#pad-players .pad-opt")) {
+    el.classList.toggle("on", Number(el.dataset.player) === padPlayer);
   }
+  for (const el of document.querySelectorAll<HTMLElement>("#pad-devices .pad-opt")) {
+    el.classList.toggle("on", el.dataset.device === padDevice);
+  }
+  for (const btn of document.querySelectorAll<HTMLElement>(".pad-key")) {
+    const action = btn.dataset.action as Action;
+    btn.innerHTML = "";
+    const name = document.createElement("span");
+    name.className = "pad-key-name";
+    name.textContent = PAD_LABELS[action];
+    const value = document.createElement("span");
+    value.className = "pad-key-val";
+    value.textContent = bindText(action);
+    btn.append(name, value);
+  }
+}
+
+function renderBinds(): void {
+  renderPadDiagram();
 
   // Rewind, save, load and pause drive the emulator rather than the console,
-  // so they are shared by both players and only fill the first two columns.
+  // so they are shared by both players and stay a short list of their own.
+  const table = $("#controls-grid");
+  if (!table) return;
+  table.innerHTML = "<thead><tr><th></th><th>KEY</th><th>GAMEPAD</th></tr></thead>";
+  const tbody = document.createElement("tbody");
   const sys = input.getSysBinds();
-  const head = document.createElement("tr");
-  head.className = "bind-section";
-  const headCell = document.createElement("td");
-  headCell.colSpan = 5;
-  headCell.textContent = "EMULATOR";
-  head.appendChild(headCell);
-  tbody.appendChild(head);
-
   for (const { a, label } of SYS_BIND_ROWS) {
     const tr = document.createElement("tr");
     const th = document.createElement("td");
@@ -2150,18 +2163,32 @@ function renderBinds(): void {
       td.appendChild(btn);
       tr.appendChild(td);
     }
-    for (let i = 0; i < 2; i++) {
-      const td = document.createElement("td");
-      td.className = "bind-na";
-      td.textContent = "—";
-      tr.appendChild(td);
-    }
     tbody.appendChild(tr);
   }
-
   table.appendChild(tbody);
   showPadNotice();
   updateHudHint();
+}
+
+for (const btn of document.querySelectorAll<HTMLElement>(".pad-key")) {
+  btn.addEventListener("click", () => {
+    const action = btn.dataset.action as Action;
+    beginCapture(padPlayer, action, "nes", padDevice, btn);
+  });
+}
+for (const el of document.querySelectorAll<HTMLElement>("#pad-players .pad-opt")) {
+  el.addEventListener("click", () => {
+    padPlayer = Number(el.dataset.player) === 1 ? 1 : 0;
+    sfx.select();
+    renderBinds();
+  });
+}
+for (const el of document.querySelectorAll<HTMLElement>("#pad-devices .pad-opt")) {
+  el.addEventListener("click", () => {
+    padDevice = el.dataset.device === "pad" ? "pad" : "key";
+    sfx.select();
+    renderBinds();
+  });
 }
 
 /** A pad that does not report the standard layout has arbitrary indices, so

@@ -157,12 +157,12 @@
                     </nav>
                     <div id="cfg-pages">
                     <section class="cfg-page" data-page="picture" hidden>
-                      <label class="select-row">TV STYLE
-                        <select id="tv-select">
+                      <p class="cfg-lbl">TV STYLE</p>
+                      <div id="tv-cards" class="cfg-cards"></div>
+                      <select hidden id="tv-select">
                           <option value="full">FULL SET</option>
                           <option value="minimal">MINIMAL</option>
                         </select>
-                      </label>
                       <p class="cfg-lbl">CRT PRESET</p>
                       <div id="crt-cards" class="cfg-cards"></div>
                       <select id="crt-preset" hidden>
@@ -181,13 +181,13 @@
                         <label>FRINGE<input type="range" id="crt-aberration" min="0" max="100" value="0" /></label>
                         <label>VIGNETTE<input type="range" id="crt-vignette" min="0" max="100" value="0" /></label>
                       </div>
-                      <label class="select-row">FILTER
-                        <select id="filter-select">
+                      <p class="cfg-lbl">FILTER</p>
+                      <div id="filter-cards" class="cfg-cards"></div>
+                      <select hidden id="filter-select">
                           <option value="nearest">PIXEL PERFECT</option>
                           <option value="smooth">SMOOTH</option>
                           <option value="epx">SCALE2X (EPX)</option>
                         </select>
-                      </label>
                     </section>
                     <section class="cfg-page" data-page="room" hidden>
                       <p class="cfg-lbl">THEME</p>
@@ -199,30 +199,57 @@
                         <option value="phosphor">PHOSPHOR GREEN</option>
                         <option value="ice">ICE &amp; NEON</option>
                       </select>
-                      <label class="select-row">IDLE SCREEN
-                        <select id="idle-select">
+                      <p class="cfg-lbl">IDLE SCREEN</p>
+                      <div id="idle-cards" class="cfg-cards"></div>
+                      <select hidden id="idle-select">
                           <option value="previews">GAME PREVIEWS</option>
                           <option value="static">TV STATIC</option>
                           <option value="bars">COLOUR BARS</option>
                           <option value="blank">BLANK TUBE</option>
                         </select>
-                      </label>
-                      <label class="select-row">WALL
-                        <select id="wall-select">
+                      <p class="cfg-lbl">WALL</p>
+                      <div id="wall-cards" class="cfg-cards"></div>
+                      <select hidden id="wall-select">
                           <option value="diamonds">DIAMONDS</option>
                           <option value="dots">DOTS</option>
                           <option value="checker">CHECKER</option>
                           <option value="plain">PLAIN</option>
                         </select>
-                      </label>
                     </section>
                     <section class="cfg-page" data-page="controls" hidden>
-                      <p id="pad-notice" hidden></p>
-                      <div id="controls-scroll">
-                        <table id="controls-grid"></table>
+                      <div id="pad-switches">
+                        <div class="pad-switch" id="pad-players">
+                          <button type="button" class="pad-opt" data-player="0">P1</button>
+                          <button type="button" class="pad-opt" data-player="1">P2</button>
+                        </div>
+                        <div class="pad-switch" id="pad-devices">
+                          <button type="button" class="pad-opt" data-device="key">KEYBOARD</button>
+                          <button type="button" class="pad-opt" data-device="pad">GAMEPAD</button>
+                        </div>
                       </div>
+                      <p id="pad-notice" hidden></p>
+                      <div id="pad-diagram">
+                        <div class="pad-shell">
+                          <div class="pad-cross">
+                            <button type="button" class="pad-key" data-action="up"></button>
+                            <button type="button" class="pad-key" data-action="left"></button>
+                            <button type="button" class="pad-key" data-action="right"></button>
+                            <button type="button" class="pad-key" data-action="down"></button>
+                          </div>
+                          <div class="pad-centre">
+                            <button type="button" class="pad-key pad-pill" data-action="select"></button>
+                            <button type="button" class="pad-key pad-pill" data-action="start"></button>
+                          </div>
+                          <div class="pad-faces">
+                            <button type="button" class="pad-key pad-round" data-action="b"></button>
+                            <button type="button" class="pad-key pad-round" data-action="a"></button>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="cfg-lbl">EMULATOR</p>
+                      <table id="controls-grid"></table>
                       <button class="nes-btn is-small" id="btn-binds-reset">RESET DEFAULTS</button>
-                      <p class="dim">CLICK A CELL, THEN PRESS A KEY OR GAMEPAD BUTTON &middot; ESC CANCELS. THE STICK ALWAYS WORKS AS A D-PAD.</p>
+                      <p class="dim">PICK A BUTTON, THEN PRESS A KEY OR A GAMEPAD BUTTON &middot; ESC CANCELS. THE STICK ALWAYS WORKS AS A D-PAD.</p>
                       <label class="select-row touch-only">TOUCH PAD
                         <select id="touch-select">
                           <option value="auto">AUTO (MOBILE, NO GAMEPAD)</option>
