@@ -1781,6 +1781,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   padding-right: 4px;
 }
 .cfg-page[hidden] { display: none; }
+.cfg-page > *:last-child { margin-bottom: 0; }
 
 .cfg-lbl {
   margin: 8px 0 5px;
@@ -2022,6 +2023,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   .cfg-lbl { margin: 5px 0 4px; }
   #pad-switches { margin-bottom: 5px; }
   #controls-grid { gap: 2px 8px; }
+  .cfg-cards { gap: 5px; margin-bottom: 5px; }
 }
 
 /* ------------------------------------------------ CONFIG: the other faces */
