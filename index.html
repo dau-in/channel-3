@@ -155,6 +155,7 @@
                       <button type="button" class="cfg-tab" data-page="room">ROOM</button>
                       <button type="button" class="cfg-tab" data-page="controls">CONTROLS</button>
                       <button type="button" class="cfg-tab" data-page="system">SYSTEM</button>
+                      <button type="button" class="cfg-tab" data-page="about">ABOUT</button>
                     </nav>
                     <div id="cfg-pages">
                     <section class="cfg-page" data-page="picture" hidden>
@@ -268,32 +269,32 @@
                       </label>
                     </section>
                     <section class="cfg-page" data-page="system" hidden>
+                      <p class="cfg-lbl">SOUND</p>
                       <label>VOLUME<input type="range" id="volume-cfg" min="0" max="100" value="100" /></label>
+                      <p class="cfg-lbl">SAVES</p>
                       <label class="crt-row"><input type="checkbox" class="nes-checkbox is-dark" id="autosave-on" checked /><span>AUTO SAVE</span></label>
-                      <details id="my-data">
-                        <summary>MY ROMS &amp; DATA</summary>
-                        <p class="dim" id="storage-usage" style="text-align:left"></p>
+                      <p class="cfg-lbl">MY ROMS &amp; DATA</p>
+                      <div id="my-data">
+                        <p class="dim" id="storage-usage"></p>
                         <div id="data-row">
                           <button class="nes-btn is-small" id="btn-backup">BACKUP SAVES</button>
                           <button class="nes-btn is-small" id="btn-restore">RESTORE</button>
                         </div>
                         <button class="nes-btn is-small is-error" id="btn-wipe">DELETE ALL MY ROMS &amp; SAVES</button>
-                        <p class="dim" style="text-align:left">CLEARING THIS BROWSER&rsquo;S SITE DATA (OR HISTORY) ALSO ERASES YOUR ADDED ROMS AND SAVES.</p>
-                      </details>
-                      <details id="credits">
-                        <summary>GAME CREDITS &amp; LICENSES</summary>
-                        <ul id="credits-list"></ul>
-                      </details>
-                      <details id="about">
-                        <summary>ABOUT</summary>
-                        <ul id="about-list">
-                          <li><i class="nes-icon heart is-small"></i> MADE BY <a href="https://github.com/dau-in" target="_blank" rel="noreferrer">Dauin</a></li>
-                          <li><i class="nes-icon github is-small"></i> <a id="repo-link" href="https://github.com/dau-in" target="_blank" rel="noreferrer">SOURCE CODE</a></li>
-                          <li><i class="nes-icon star is-small"></i> POWERED BY <a href="https://github.com/bfirsh/jsnes" target="_blank" rel="noreferrer">jsnes</a> &middot; <a href="https://peerjs.com" target="_blank" rel="noreferrer">peerjs</a> &middot; <a href="https://nostalgic-css.github.io/NES.css/" target="_blank" rel="noreferrer">NES.css</a></li>
-                          <li><i class="nes-icon trophy is-small"></i> CRT SHADER, LOCKSTEP NETPLAY, REWIND &amp; UI BUILT FOR THIS PROJECT</li>
-                          <li><i class="nes-icon coin is-small"></i> ADDED-ROM TITLES FROM <a href="https://github.com/libretro/libretro-database" target="_blank" rel="noreferrer">libretro-database</a> (NO-INTRO)</li>
-                        </ul>
-                      </details>
+                        <p class="dim">CLEARING THIS BROWSER'S SITE DATA (OR HISTORY) ALSO ERASES YOUR ADDED ROMS AND SAVES.</p>
+                      </div>
+                    </section>
+                    <section class="cfg-page" data-page="about" hidden>
+                      <p class="cfg-lbl">GAME CREDITS &amp; LICENSES</p>
+                      <ul id="credits-list"></ul>
+                      <p class="cfg-lbl">ABOUT</p>
+                      <ul id="about-list">
+                        <li><i class="nes-icon heart is-small"></i> MADE BY <a href="https://github.com/dau-in" target="_blank" rel="noreferrer">Dauin</a></li>
+                        <li><i class="nes-icon github is-small"></i> <a href="https://github.com/dau-in/channel-3" target="_blank" rel="noreferrer">SOURCE CODE</a></li>
+                        <li><i class="nes-icon star is-small"></i> POWERED BY <a href="https://github.com/bfirsh/jsnes" target="_blank" rel="noreferrer">jsnes</a> &middot; <a href="https://peerjs.com" target="_blank" rel="noreferrer">peerjs</a> &middot; <a href="https://nostalgic-css.github.io/NES.css/" target="_blank" rel="noreferrer">NES.css</a></li>
+                        <li><i class="nes-icon trophy is-small"></i> CRT SHADER, LOCKSTEP NETPLAY, REWIND &amp; UI BUILT FOR THIS PROJECT</li>
+                        <li><i class="nes-icon coin is-small"></i> ADDED-ROM TITLES FROM <a href="https://github.com/libretro/libretro-database" target="_blank" rel="noreferrer">libretro-database</a> (NO-INTRO)</li>
+                      </ul>
                     </section>
                     </div>
                   </div>

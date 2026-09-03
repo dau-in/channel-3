@@ -1164,7 +1164,7 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
 #data-row { display: flex; gap: 8px; margin: 8px 0; }
 #data-row .nes-btn { flex: 1; }
 #my-data > .nes-btn { width: 100%; margin-top: 4px; }
-#my-data summary { cursor: pointer; font-size: 10px; color: var(--amber); margin-top: 6px; }
+#my-data .dim { text-align: left; }
 
 #lib-row { display: flex; gap: 8px; margin-top: 8px; }
 #lib-row input {
@@ -1270,18 +1270,24 @@ body[data-tv="minimal"] .chin-fallback { display: inline-block; }
   cursor: pointer;
 }
 
-#credits summary, #about summary {
-  cursor: pointer;
-  font-size: 10px;
-  color: var(--amber);
-  margin-top: 6px;
-}
 #credits-list, #about-list {
   list-style: none;
   padding: 0;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--dim);
-  line-height: 1.9;
+  line-height: 1.55;
+}
+#credits-list li, #about-list li {
+  margin-bottom: 2px;
+  break-inside: avoid;
+}
+#credits-list, #about-list { line-height: 1.45; }
+#credits-list {
+  columns: 2;
+  column-gap: 16px;
+}
+@media (max-width: 560px), (orientation: portrait) {
+  #credits-list { columns: 1; }
 }
 #credits-list a, #about-list a { color: var(--amber); }
 
@@ -1776,7 +1782,8 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 #cfg-pages {
   flex: 1 1 auto;
   min-width: 0;
-  height: min(58vh, 460px);
+  min-height: 0;
+  height: auto;
   /* Declaring only overflow-y leaves overflow-x as visible, and the spec then
      computes that visible to auto — which is how a horizontal scrollbar
      appeared under a panel that has nothing to scroll sideways to. */
@@ -1788,7 +1795,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 .cfg-page > *:last-child { margin-bottom: 0; }
 
 .cfg-lbl {
-  margin: 8px 0 5px;
+  margin: 6px 0 4px;
   font-size: 8px;
   letter-spacing: 0.08em;
   color: var(--dim);
@@ -1889,7 +1896,13 @@ body[data-touchsize="l"] { --tscale: 1.24; }
     padding: 0 0 6px;
   }
   .cfg-tab { flex: 1 1 0; text-align: center; padding: 7px 3px; }
-  #cfg-pages { height: min(52vh, 460px); width: 100%; }
+  #cfg-pages { width: 100%; }
+  .settings-box {
+    max-height: 96%;
+    gap: 7px;
+    padding: 10px 8px;
+  }
+  .settings-box > .title { margin-bottom: 0; }
 }
 
 
@@ -1900,6 +1913,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   max-height: 90%;
   overflow: hidden;
 }
+#cfg-body { flex: 1 1 auto; min-height: 0; align-items: stretch; }
 
 /* --------------------------------------------- CONFIG: the pad, drawn out */
 
