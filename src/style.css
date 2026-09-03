@@ -1777,6 +1777,10 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   flex: 1 1 auto;
   min-width: 0;
   height: min(58vh, 460px);
+  /* Declaring only overflow-y leaves overflow-x as visible, and the spec then
+     computes that visible to auto — which is how a horizontal scrollbar
+     appeared under a panel that has nothing to scroll sideways to. */
+  overflow-x: hidden;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -1931,43 +1935,64 @@ body[data-touchsize="l"] { --tscale: 1.24; }
    player reads the position instead of a row label. */
 .pad-shell {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  /* The real object is roughly a quarter d-pad, a third centre, a quarter
+     buttons. Before this the two ends were cramped and the middle was a hole. */
+  grid-template-columns: 1.05fr 1.25fr 1fr;
   align-items: center;
-  gap: 10px;
+  justify-items: center;
+  gap: 8px;
   width: 100%;
-  padding: 9px 10px;
+  padding: 11px 12px;
+  border-radius: 6px;
   background: var(--chassis);
   border: 3px solid var(--outline);
-  box-shadow: inset 0 2px 0 var(--chassis-hi), inset 0 -3px 0 var(--chassis-lo);
+  box-shadow:
+    inset 0 2px 0 var(--chassis-hi),
+    inset 0 -3px 0 var(--chassis-lo);
 }
 
 .pad-cross {
   display: grid;
-  grid-template-columns: repeat(3, minmax(34px, 1fr));
+  grid-template-columns: repeat(3, minmax(40px, 1fr));
   grid-template-rows: repeat(3, auto);
   gap: 0;
+  /* the black recess the cross sits in on the real pad */
+  padding: 4px;
+  background: var(--outline);
+  border-radius: 4px;
 }
+.pad-cross { position: relative; }
 .pad-cross::before {
   content: "";
-  grid-area: 2 / 2;
+  position: absolute;
+  inset: 4px;
   background: var(--btn);
-  border-top: 2px solid var(--outline);
-  border-bottom: 2px solid var(--outline);
+  clip-path: polygon(
+    33.34% 0, 66.66% 0, 66.66% 33.34%, 100% 33.34%, 100% 66.66%,
+    66.66% 66.66%, 66.66% 100%, 33.34% 100%, 33.34% 66.66%, 0 66.66%, 0 33.34%, 33.34% 33.34%);
 }
+.pad-cross .pad-key {
+  position: relative;
+  background: transparent;
+  border-color: transparent;
+}
+.pad-cross .pad-key:hover { border-color: var(--amber); }
+.pad-cross .pad-key.capturing { background: var(--accent-soft); border-color: var(--accent); }
 .pad-cross [data-action="up"] { grid-area: 1 / 2; }
 .pad-cross [data-action="left"] { grid-area: 2 / 1; }
 .pad-cross [data-action="right"] { grid-area: 2 / 3; }
 .pad-cross [data-action="down"] { grid-area: 3 / 2; }
 
-.pad-centre { display: flex; flex-direction: column; gap: 4px; }
-.pad-faces { display: flex; gap: 8px; align-items: flex-end; }
+.pad-centre { display: flex; flex-direction: column; gap: 5px; }
+.pad-faces { display: flex; gap: 9px; align-items: flex-end; }
+.pad-centre .pad-slot { width: 100%; }
 
 .pad-key {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 38px;
-  min-height: 26px;
+  min-width: 40px;
+  min-height: 30px;
   padding: 3px 6px;
   cursor: pointer;
   font-family: "Silkscreen", monospace;
@@ -1997,29 +2022,39 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   font-size: 6px;
   letter-spacing: 0.12em;
   color: var(--outline);
-  opacity: 0.75;
+  opacity: 0.8;
 }
+/* A and B are printed on the black recess, not on the grey shell */
+.pad-faces .pad-print { color: var(--paper); opacity: 0.55; }
 
-.pad-pill { min-width: 74px; min-height: 20px; border-radius: 10px; }
+.pad-pill { width: 100%; min-width: 0; min-height: 22px; border-radius: 11px; }
 .pad-round {
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 48px;
+  min-height: 48px;
   border-radius: 50%;
   background: var(--accent);
   color: var(--accent-text);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 30%);
 }
+/* the two buttons sit in their own recess, like the cross */
+.pad-faces {
+  padding: 5px 6px;
+  background: var(--outline);
+  border-radius: 4px;
+}
+.pad-centre { width: 100%; }
 
 /* Small screens: the pad stays horizontal and shrinks. Stacking it made it
    tall exactly where height is scarcest, and a NES pad is a wide, short thing
    — which is the shape a portrait phone has room for. */
 @media (max-width: 560px), (orientation: portrait) {
-  .pad-shell { gap: 5px; padding: 7px 6px; }
-  .pad-cross { grid-template-columns: repeat(3, minmax(26px, 1fr)); }
-  .pad-key { min-width: 28px; min-height: 22px; padding: 2px 3px; }
+  .pad-shell { gap: 4px; padding: 7px 5px; }
+  .pad-cross { grid-template-columns: repeat(3, minmax(26px, 1fr)); padding: 2px; }
+  .pad-key { min-width: 26px; min-height: 22px; padding: 2px 3px; }
   .pad-key-val { font-size: 6px; }
-  .pad-pill { min-width: 52px; min-height: 17px; }
-  .pad-round { min-width: 30px; min-height: 30px; }
-  .pad-faces { gap: 5px; }
+  .pad-pill { min-height: 17px; }
+  .pad-round { min-width: 32px; min-height: 32px; }
+  .pad-faces { gap: 5px; padding: 3px 4px; }
   .cfg-lbl { margin: 5px 0 4px; }
   #pad-switches { margin-bottom: 5px; }
   #controls-grid { gap: 2px 8px; }
@@ -2121,8 +2156,10 @@ body[data-touchsize="l"] { --tscale: 1.24; }
    table. Four rows of three columns cost 151px of the page on their own. */
 #controls-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 3px 10px;
+  /* minmax(0, 1fr), not auto-fit: auto-fit found room for a third column and
+     then let it hang off the right edge. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 18px;
   margin-bottom: 4px;
 }
 .sys-row {
@@ -2132,15 +2169,19 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 }
 .sys-name {
   flex: 1 1 auto;
+  min-width: 0;
   font-size: 7px;
   letter-spacing: 0.06em;
   color: var(--paper);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sys-row .bind {
+  flex: 0 0 auto;
   font-family: "Silkscreen", monospace;
   font-size: 7px;
-  min-width: 46px;
+  min-width: 42px;
   padding: 3px 4px;
   background: var(--field);
   color: var(--paper);
