@@ -500,6 +500,7 @@ body[data-wall="plain"] #stage {
 }
 /* live button state, mirrored from keyboard + gamepad */
 .pf { fill: var(--chassis); transition: fill 0.05s; }
+.pf-select, .pf-start, .pf-a, .pf-b { fill: var(--prop); }
 .pf.on { fill: var(--accent); }
 
 /* UI drawn "on the glass" */
