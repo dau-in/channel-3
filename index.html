@@ -269,8 +269,8 @@
                       </label>
                     </section>
                     <section class="cfg-page" data-page="system" hidden>
-                      <p class="cfg-lbl">SOUND</p>
-                      <label>VOLUME<input type="range" id="volume-cfg" min="0" max="100" value="100" /></label>
+                      <p class="cfg-lbl chin-only">SOUND</p>
+                      <label class="chin-only">VOLUME<input type="range" id="volume-cfg" min="0" max="100" value="100" /></label>
                       <p class="cfg-lbl">SAVES</p>
                       <label class="crt-row"><input type="checkbox" class="nes-checkbox is-dark" id="autosave-on" checked /><span>AUTO SAVE</span></label>
                       <p class="cfg-lbl">MY ROMS &amp; DATA</p>
@@ -304,6 +304,10 @@
 
               <!-- ============================================= overlays -->
               <div id="ch-osd" hidden></div>
+              <div id="vol-osd" hidden>
+                <span class="vol-label">VOL</span>
+                <span class="vol-track"><span class="vol-fill"></span></span>
+              </div>
               <div id="autosave-osd" hidden><span id="rec-dot"></span>AUTO&nbsp;SAVE</div>
               <div id="no-signal" hidden>NO SIGNAL</div>
               <div id="rew-overlay" hidden><span>&#9664;&#9664; REW</span></div>
@@ -327,7 +331,16 @@
           <div id="tv-chin">
             <span id="tv-brand">CHANNEL·3</span>
             <span id="chin-right">
-              <input type="range" id="volume" min="0" max="100" value="100" title="Volume" />
+              <span
+                id="volume"
+                class="chin-knob"
+                role="slider"
+                tabindex="0"
+                title="Volume"
+                aria-label="Volume"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ><span class="knob-mark"></span></span>
               <button id="btn-power" class="chin-btn" title="Power / exit game">
                 <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path fill="currentColor" d="M5 1h2v5H5V1zM3 3H2v1H1v5h1v1h1v1h6v-1h1v-1h1V4h-1V3H9v2h1v3H9v1H8v1H4v-1H3V9H2V5h1V3z"/></svg>
               </button>

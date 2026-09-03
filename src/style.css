@@ -421,32 +421,6 @@ body[data-wall="plain"] #stage {
   gap: 12px;
 }
 
-/* volume wheel on the set */
-#volume {
-  appearance: none;
-  width: 64px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--field);
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 80%);
-  cursor: pointer;
-}
-#volume::-webkit-slider-thumb {
-  appearance: none;
-  width: 10px;
-  height: 14px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, var(--chassis-hi) 0%, var(--chassis-lo) 100%);
-  border: 1px solid var(--outline);
-  box-shadow: inset 0 1px 0 rgb(242 230 201 / 20%);
-}
-#volume::-moz-range-thumb {
-  width: 10px;
-  height: 14px;
-  border-radius: 2px;
-  background: var(--chassis);
-  border: 1px solid var(--outline);
-}
 
 /* physical set buttons */
 .chin-btn {
@@ -1688,8 +1662,6 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 #tv-chin { border-top: 3px solid var(--outline); }
 .chin-btn { border-radius: 0 !important; }
 #led { border-radius: 0 !important; }
-#volume { border-radius: 0; }
-#volume::-webkit-slider-thumb { border-radius: 0; }
 .cart-body {
   border-radius: 0;
   box-shadow: inset 0 2px 0 rgb(242 230 201 / 10%), 6px 6px 0 rgb(0 0 0 / 45%);
@@ -2209,4 +2181,120 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   color: var(--accent-text);
   background: var(--accent-soft);
   animation: blink 0.8s steps(2) infinite;
+}
+
+
+/* --------------------------------------------------------- volume knob
+
+   The set already had a volume control on its chin; it was an HTML range,
+   which is the one thing on the whole front panel that looked like a web page.
+   A knob is what the object would have. Worked by dragging up and down rather
+   than by chasing the pointer round twenty pixels of arc. */
+.chin-knob {
+  --turn: 0deg;
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: ns-resize;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 50% 35%, var(--chassis-hi), var(--chassis) 60%, var(--chassis-lo));
+  border: 2px solid var(--outline);
+  box-shadow: inset 0 -2px 0 rgb(0 0 0 / 35%), 0 1px 0 var(--chassis-hi);
+}
+.chin-knob:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chin-knob.turning { border-color: var(--amber); }
+
+/* the pointer line, and the notch it points at */
+.knob-mark {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--turn));
+  transition: transform 0.06s linear;
+}
+.knob-mark::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  background: var(--amber);
+  box-shadow: 0 0 3px rgba(var(--amber-rgb), 0.7);
+}
+
+/* ------------------------------------------------- volume on the picture
+
+   What a television did when you touched the volume: a bar over whatever was
+   playing, gone a moment later. */
+#vol-osd {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 12%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 25;
+  pointer-events: none;
+}
+#vol-osd[hidden] { display: none; }
+.vol-label {
+  font-size: clamp(9px, 1.6vmin, 14px);
+  letter-spacing: 0.18em;
+  color: var(--amber);
+  text-shadow: 2px 2px 0 rgb(0 0 0 / 85%);
+}
+.vol-track {
+  position: relative;
+  flex: 1 1 auto;
+  height: clamp(10px, 2vmin, 18px);
+  background: rgb(0 0 0 / 55%);
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 70%), inset 0 0 0 1px rgba(var(--amber-rgb), 0.35);
+}
+.vol-fill {
+  display: block;
+  height: 100%;
+  background: var(--amber);
+  /* segmented, the way the bar was drawn out of blocks */
+  -webkit-mask-image: repeating-linear-gradient(to right, #000 0 6px, transparent 6px 9px);
+  mask-image: repeating-linear-gradient(to right, #000 0 6px, transparent 6px 9px);
+  transition: width 0.08s linear;
+}
+
+/* The settings slider is a duplicate while the chin is on screen. It earns its
+   place only in the styles that hide the chin. */
+#cfg-pages .chin-only { display: none; }
+body[data-tv="minimal"] #cfg-pages .chin-only { display: block; }
+body[data-tv="minimal"] #cfg-pages label.chin-only { display: flex; }
+
+/* ------------------------------------------------------- credits, tidied */
+#credits-list li {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 6px;
+}
+#credits-list li b {
+  color: var(--paper);
+  font-weight: normal;
+}
+#credits-list li span {
+  color: var(--dim);
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+/* the ABOUT rows: icon and text on one baseline instead of drifting apart */
+#about-list li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+#about-list .nes-icon {
+  flex: 0 0 auto;
+  margin: 0;
 }

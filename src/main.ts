@@ -1606,28 +1606,84 @@ $("#btn-label").addEventListener("click", () => {
 
 // ---------------------------------------------------------- settings: av
 
-const volumeHud = $<HTMLInputElement>("#volume");
+const volumeKnob = $("#volume");
 const volumeCfg = $<HTMLInputElement>("#volume-cfg");
+const volOsd = $("#vol-osd");
+const volFill = volOsd.querySelector<HTMLElement>(".vol-fill")!;
 
-// Two sliders, one value: the HUD one and the settings one mirror each other.
-function setVolume(v: number): void {
+/** Sweep of the knob, in degrees, from silent to full. A real set stopped
+ *  well short of a full turn. */
+const KNOB_SWEEP = 270;
+let volOsdTimer = 0;
+
+// The knob and the settings slider are two faces of one number.
+function setVolume(v: number, showOsd = false): void {
   settings.volume = v;
   audio.setVolume(v);
   setSfxVolume(v);
-  const pct = String(Math.round(v * 100));
-  if (volumeHud.value !== pct) volumeHud.value = pct;
-  if (volumeCfg.value !== pct) volumeCfg.value = pct;
+  const pct = Math.round(v * 100);
+  if (volumeCfg.value !== String(pct)) volumeCfg.value = String(pct);
+  volumeKnob.style.setProperty("--turn", `${-KNOB_SWEEP / 2 + v * KNOB_SWEEP}deg`);
+  volumeKnob.setAttribute("aria-valuenow", String(pct));
+  volumeKnob.setAttribute("aria-valuetext", `${pct}%`);
+  if (showOsd) showVolumeOsd(v);
+}
+
+/** The bar an old set threw up over the picture when you touched the volume. */
+function showVolumeOsd(v: number): void {
+  volFill.style.width = `${Math.round(v * 100)}%`;
+  volOsd.hidden = false;
+  clearTimeout(volOsdTimer);
+  volOsdTimer = window.setTimeout(() => (volOsd.hidden = true), 1500);
 }
 
 setVolume(settings.volume);
 
-const onVolumeInput = (el: HTMLInputElement) => () => {
-  setVolume(Number(el.value) / 100);
+function nudgeVolume(delta: number): void {
+  setVolume(Math.max(0, Math.min(1, settings.volume + delta)), true);
   saveSettings();
-};
+}
 
-volumeHud.addEventListener("input", onVolumeInput(volumeHud));
-volumeCfg.addEventListener("input", onVolumeInput(volumeCfg));
+// Vertical drag, not angle: chasing the pointer round a 20px knob is fiddly,
+// and every hardware knob in a UI ends up worked this way.
+let knobFrom = 0;
+let knobAt = 0;
+volumeKnob.addEventListener("pointerdown", (e) => {
+  volumeKnob.setPointerCapture(e.pointerId);
+  knobFrom = settings.volume;
+  knobAt = e.clientY;
+  volumeKnob.classList.add("turning");
+  e.preventDefault();
+});
+volumeKnob.addEventListener("pointermove", (e) => {
+  if (!volumeKnob.hasPointerCapture(e.pointerId)) return;
+  setVolume(Math.max(0, Math.min(1, knobFrom + (knobAt - e.clientY) / 120)), true);
+});
+for (const ev of ["pointerup", "pointercancel"] as const) {
+  volumeKnob.addEventListener(ev, (e) => {
+    if (volumeKnob.hasPointerCapture(e.pointerId)) volumeKnob.releasePointerCapture(e.pointerId);
+    volumeKnob.classList.remove("turning");
+    saveSettings();
+  });
+}
+volumeKnob.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  nudgeVolume(e.deltaY < 0 ? 0.05 : -0.05);
+}, { passive: false });
+volumeKnob.addEventListener("keydown", (e) => {
+  const step = e.key === "ArrowUp" || e.key === "ArrowRight" ? 0.05
+    : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -0.05
+    : 0;
+  if (!step) return;
+  e.preventDefault();
+  e.stopPropagation();
+  nudgeVolume(step);
+});
+
+volumeCfg.addEventListener("input", () => {
+  setVolume(Number(volumeCfg.value) / 100, true);
+  saveSettings();
+});
 
 const themeSelect = $<HTMLSelectElement>("#theme-select");
 
@@ -2795,16 +2851,21 @@ for (const key of Object.keys(localStorage)) {
 }
 
 function renderCredits(): void {
+  // One long run-on line per game wrapped three times and read as a wall. The
+  // title carries the line, everything else drops to a second, dimmer one.
   $("#credits-list").innerHTML = library
     .filter((e) => !e.mine)
-    .map(
-      // year 0 means "not established" — a few homebrew releases have no
-      // date anyone can point at, and "(0)" on a credits page is worse than
-      // saying nothing
-      (e) =>
-        `<li>${e.title} — ${e.author}${e.year ? ` (${e.year})` : ""} · ${e.license} · ` +
-        `<a href="${e.source}" target="_blank" rel="noreferrer">source</a></li>`,
-    )
+    .map((e) => {
+      // year 0 means "not established" — a few homebrew releases have no date
+      // anyone can point at, and "(0)" on a credits page is worse than nothing
+      const when = e.year ? ` · ${e.year}` : "";
+      return (
+        `<li><b>${e.title}</b>` +
+        `<span>${e.author}${when}</span>` +
+        `<span>${e.license} · ` +
+        `<a href="${e.source}" target="_blank" rel="noreferrer">SOURCE</a></span></li>`
+      );
+    })
     .join("");
 }
 
