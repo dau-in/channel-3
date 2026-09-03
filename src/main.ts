@@ -1644,20 +1644,38 @@ function nudgeVolume(delta: number): void {
   saveSettings();
 }
 
-// Vertical drag, not angle: chasing the pointer round a 20px knob is fiddly,
-// and every hardware knob in a UI ends up worked this way.
-let knobFrom = 0;
-let knobAt = 0;
+// It turns. Dragging up and down is what a fader does, and doing that to
+// something drawn as a knob reads wrong — so the pointer's angle around the
+// centre is followed instead, and the rotation accumulates, which means you
+// can keep going round past the top without the value jumping.
+let knobAngle = 0;
+
+/** Pointer angle around the knob, or null when it is too close to the middle
+ *  for the angle to mean anything. */
+function knobAngleAt(e: PointerEvent): number | null {
+  const r = volumeKnob.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2);
+  const dy = e.clientY - (r.top + r.height / 2);
+  return Math.hypot(dx, dy) < 5 ? null : Math.atan2(dy, dx);
+}
+
 volumeKnob.addEventListener("pointerdown", (e) => {
   volumeKnob.setPointerCapture(e.pointerId);
-  knobFrom = settings.volume;
-  knobAt = e.clientY;
+  knobAngle = knobAngleAt(e) ?? 0;
   volumeKnob.classList.add("turning");
   e.preventDefault();
 });
 volumeKnob.addEventListener("pointermove", (e) => {
   if (!volumeKnob.hasPointerCapture(e.pointerId)) return;
-  setVolume(Math.max(0, Math.min(1, knobFrom + (knobAt - e.clientY) / 120)), true);
+  const now = knobAngleAt(e);
+  if (now === null) return;
+  // shortest way round, so crossing the 180 degree seam does not spin the value
+  let step = now - knobAngle;
+  if (step > Math.PI) step -= 2 * Math.PI;
+  if (step < -Math.PI) step += 2 * Math.PI;
+  knobAngle = now;
+  const turned = (step * 180) / Math.PI / KNOB_SWEEP;
+  setVolume(Math.max(0, Math.min(1, settings.volume + turned)), true);
 });
 for (const ev of ["pointerup", "pointercancel"] as const) {
   volumeKnob.addEventListener(ev, (e) => {
@@ -1667,7 +1685,11 @@ for (const ev of ["pointerup", "pointercancel"] as const) {
   });
 }
 volumeKnob.addEventListener("wheel", (e) => {
+  // The carousel listens for wheel on the window, so without stopping this one
+  // here a scroll over the knob also flipped the shelf. preventDefault alone
+  // does not do it: the event still bubbles.
   e.preventDefault();
+  e.stopPropagation();
   nudgeVolume(e.deltaY < 0 ? 0.05 : -0.05);
 }, { passive: false });
 volumeKnob.addEventListener("keydown", (e) => {

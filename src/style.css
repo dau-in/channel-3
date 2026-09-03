@@ -2195,23 +2195,39 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   position: relative;
   display: inline-block;
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  cursor: ns-resize;
+  cursor: grab;
   touch-action: none;
+  /* knurled rim: the ridges you actually grip on a set's dial */
   background:
-    radial-gradient(circle at 50% 35%, var(--chassis-hi), var(--chassis) 60%, var(--chassis-lo));
+    repeating-conic-gradient(
+      from 0deg,
+      var(--chassis-lo) 0deg 6deg,
+      var(--chassis-hi) 6deg 12deg);
   border: 2px solid var(--outline);
-  box-shadow: inset 0 -2px 0 rgb(0 0 0 / 35%), 0 1px 0 var(--chassis-hi);
+  box-shadow: 0 2px 3px rgb(0 0 0 / 45%);
+}
+/* the sunken face the pointer is cut into */
+.chin-knob::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, var(--chassis), var(--chassis-lo) 75%);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 55%), 0 0 0 1px var(--outline);
 }
 .chin-knob:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.chin-knob.turning { border-color: var(--amber); }
+.chin-knob:active,
+.chin-knob.turning { cursor: grabbing; }
+.chin-knob.turning::after { box-shadow: inset 0 1px 2px rgb(0 0 0 / 55%), 0 0 0 1px var(--amber); }
 
-/* the pointer line, and the notch it points at */
+/* the pointer, above the face */
 .knob-mark {
   position: absolute;
   inset: 0;
+  z-index: 1;
   transform: rotate(var(--turn));
   transition: transform 0.06s linear;
 }
@@ -2219,12 +2235,12 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   content: "";
   position: absolute;
   left: 50%;
-  top: 2px;
+  top: 5px;
   width: 2px;
-  height: 6px;
+  height: 7px;
   margin-left: -1px;
   background: var(--amber);
-  box-shadow: 0 0 3px rgba(var(--amber-rgb), 0.7);
+  box-shadow: 0 0 4px rgba(var(--amber-rgb), 0.8);
 }
 
 /* ------------------------------------------------- volume on the picture
