@@ -2132,14 +2132,15 @@ function renderPadDiagram(): void {
   }
   for (const btn of document.querySelectorAll<HTMLElement>(".pad-key")) {
     const action = btn.dataset.action as Action;
+    // Only the binding goes in the button. Where it sits already says which
+    // one it is, and the real pad prints SELECT, START, A and B on the shell
+    // rather than inside the key.
     btn.innerHTML = "";
-    const name = document.createElement("span");
-    name.className = "pad-key-name";
-    name.textContent = PAD_LABELS[action];
+    btn.title = PAD_LABELS[action];
     const value = document.createElement("span");
     value.className = "pad-key-val";
     value.textContent = bindText(action);
-    btn.append(name, value);
+    btn.append(value);
   }
 }
 
@@ -2148,34 +2149,34 @@ function renderBinds(): void {
 
   // Rewind, save, load and pause drive the emulator rather than the console,
   // so they are shared by both players and stay a short list of their own.
-  const table = $("#controls-grid");
-  if (!table) return;
-  table.innerHTML = "<thead><tr><th></th><th>KEY</th><th>GAMEPAD</th></tr></thead>";
-  const tbody = document.createElement("tbody");
+  // A four-row, three-column table cost 151px of the page all by itself. The
+  // same bindings as chips are a third of that.
+  const grid = $("#controls-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
   const sys = input.getSysBinds();
   for (const { a, label } of SYS_BIND_ROWS) {
-    const tr = document.createElement("tr");
-    const th = document.createElement("td");
-    th.className = "action";
-    th.textContent = label;
-    tr.appendChild(th);
+    const row = document.createElement("div");
+    row.className = "sys-row";
+    const name = document.createElement("span");
+    name.className = "sys-name";
+    name.textContent = label;
+    row.appendChild(name);
     const cells: ["key" | "pad", string][] = [
       ["key", keyList(sys.key[a])],
       ["pad", padList(sys.pad[a])],
     ];
     for (const [device, text] of cells) {
-      const td = document.createElement("td");
       const btn = document.createElement("button");
       btn.className = "bind";
       btn.type = "button";
+      btn.title = device === "key" ? "Keyboard" : "Gamepad";
       btn.textContent = text;
       btn.addEventListener("click", () => beginCapture(0, a, "sys", device, btn));
-      td.appendChild(btn);
-      tr.appendChild(td);
+      row.appendChild(btn);
     }
-    tbody.appendChild(tr);
+    grid.appendChild(row);
   }
-  table.appendChild(tbody);
   showPadNotice();
   updateHudHint();
 }

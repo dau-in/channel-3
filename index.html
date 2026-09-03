@@ -238,21 +238,20 @@
                             <button type="button" class="pad-key" data-action="down"></button>
                           </div>
                           <div class="pad-centre">
-                            <button type="button" class="pad-key pad-pill" data-action="select"></button>
-                            <button type="button" class="pad-key pad-pill" data-action="start"></button>
+                            <span class="pad-slot"><button type="button" class="pad-key pad-pill" data-action="select"></button><span class="pad-print">SELECT</span></span>
+                            <span class="pad-slot"><button type="button" class="pad-key pad-pill" data-action="start"></button><span class="pad-print">START</span></span>
                           </div>
                           <div class="pad-faces">
-                            <button type="button" class="pad-key pad-round" data-action="b"></button>
-                            <button type="button" class="pad-key pad-round" data-action="a"></button>
+                            <span class="pad-slot"><button type="button" class="pad-key pad-round" data-action="b"></button><span class="pad-print">B</span></span>
+                            <span class="pad-slot"><button type="button" class="pad-key pad-round" data-action="a"></button><span class="pad-print">A</span></span>
                           </div>
                         </div>
                       </div>
                       <p class="cfg-lbl">EMULATOR</p>
-                      <table id="controls-grid"></table>
+                      <div id="controls-grid"></div>
                       <button class="nes-btn is-small" id="btn-binds-reset">RESET DEFAULTS</button>
                       <p id="binds-reset-note" hidden>CONTROLS BACK TO DEFAULTS</p>
-                      <p class="dim">PICK A BUTTON, THEN PRESS A KEY OR A GAMEPAD BUTTON &middot; ESC CANCELS. THE STICK ALWAYS WORKS AS A D-PAD.</p>
-                      <p class="dim">A KEY OR BUTTON ONLY MEANS ONE THING: BINDING IT SOMEWHERE CLEARS IT EVERYWHERE ELSE. P1 AND P2 GAMEPAD NUMBERS MAY MATCH &mdash; THOSE ARE TWO SEPARATE CONTROLLERS.</p>
+                      <p class="dim">PICK ONE, THEN PRESS A KEY OR A PAD BUTTON &middot; ESC CANCELS &middot; THE STICK IS ALWAYS A D-PAD &middot; BINDING SOMETHING CLEARS IT ELSEWHERE, THOUGH P1 AND P2 PAD NUMBERS MAY MATCH: THOSE ARE TWO CONTROLLERS.</p>
                       <label class="select-row touch-only">TOUCH PAD
                         <select id="touch-select">
                           <option value="auto">AUTO (MOBILE, NO GAMEPAD)</option>

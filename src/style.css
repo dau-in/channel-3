@@ -1776,7 +1776,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
 #cfg-pages {
   flex: 1 1 auto;
   min-width: 0;
-  height: 46vh;
+  height: min(58vh, 460px);
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -1884,7 +1884,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
     padding: 0 0 6px;
   }
   .cfg-tab { flex: 1 1 0; text-align: center; padding: 7px 3px; }
-  #cfg-pages { height: 46vh; width: 100%; }
+  #cfg-pages { height: min(52vh, 460px); width: 100%; }
 }
 
 
@@ -1923,7 +1923,7 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   border-color: var(--accent);
 }
 
-#pad-diagram { display: flex; justify-content: center; margin: 4px 0 10px; }
+#pad-diagram { display: flex; justify-content: center; margin: 3px 0 7px; }
 
 /* A real NES pad is a wide rectangle: cross on the left, the two pills in the
    middle, B and A on the right. Laying the bindings on that shape means the
@@ -1932,9 +1932,9 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 12px;
+  padding: 9px 10px;
   background: var(--chassis);
   border: 3px solid var(--outline);
   box-shadow: inset 0 2px 0 var(--chassis-hi), inset 0 -3px 0 var(--chassis-lo);
@@ -1944,25 +1944,30 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   display: grid;
   grid-template-columns: repeat(3, minmax(34px, 1fr));
   grid-template-rows: repeat(3, auto);
-  gap: 2px;
+  gap: 0;
+}
+.pad-cross::before {
+  content: "";
+  grid-area: 2 / 2;
+  background: var(--btn);
+  border-top: 2px solid var(--outline);
+  border-bottom: 2px solid var(--outline);
 }
 .pad-cross [data-action="up"] { grid-area: 1 / 2; }
 .pad-cross [data-action="left"] { grid-area: 2 / 1; }
 .pad-cross [data-action="right"] { grid-area: 2 / 3; }
 .pad-cross [data-action="down"] { grid-area: 3 / 2; }
 
-.pad-centre { display: flex; flex-direction: column; gap: 5px; }
-.pad-faces { display: flex; gap: 6px; }
+.pad-centre { display: flex; flex-direction: column; gap: 4px; }
+.pad-faces { display: flex; gap: 8px; align-items: flex-end; }
 
 .pad-key {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  min-width: 34px;
-  min-height: 34px;
-  padding: 4px 5px;
+  min-width: 38px;
+  min-height: 26px;
+  padding: 3px 6px;
   cursor: pointer;
   font-family: "Silkscreen", monospace;
   background: var(--btn);
@@ -1976,28 +1981,47 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   color: var(--accent-text);
   animation: blink 0.8s steps(2) infinite;
 }
-.pad-key-name { font-size: 5px; letter-spacing: 0.06em; color: var(--dim); }
 .pad-key-val { font-size: 7px; letter-spacing: 0.02em; white-space: nowrap; }
-.pad-key.capturing .pad-key-name { color: inherit; }
 
-.pad-pill { min-width: 62px; min-height: 22px; border-radius: 11px; }
+/* The names are printed on the shell, the way they are on the real thing,
+   instead of squeezed into the key next to its binding. */
+.pad-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.pad-print {
+  font-family: "Silkscreen", monospace;
+  font-size: 6px;
+  letter-spacing: 0.12em;
+  color: var(--outline);
+  opacity: 0.75;
+}
+
+.pad-pill { min-width: 74px; min-height: 20px; border-radius: 10px; }
 .pad-round {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: 50%;
   background: var(--accent);
   color: var(--accent-text);
 }
-.pad-round .pad-key-name { color: var(--accent-text); opacity: 0.7; }
 
-/* Small screens: the pad stacks instead of squeezing every button to nothing */
+/* Small screens: the pad stays horizontal and shrinks. Stacking it made it
+   tall exactly where height is scarcest, and a NES pad is a wide, short thing
+   — which is the shape a portrait phone has room for. */
 @media (max-width: 560px), (orientation: portrait) {
-  .pad-shell {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    gap: 10px;
-  }
-  .pad-faces { justify-content: center; }
+  .pad-shell { gap: 5px; padding: 7px 6px; }
+  .pad-cross { grid-template-columns: repeat(3, minmax(26px, 1fr)); }
+  .pad-key { min-width: 28px; min-height: 22px; padding: 2px 3px; }
+  .pad-key-val { font-size: 6px; }
+  .pad-pill { min-width: 52px; min-height: 17px; }
+  .pad-round { min-width: 30px; min-height: 30px; }
+  .pad-faces { gap: 5px; }
+  .cfg-lbl { margin: 5px 0 4px; }
+  #pad-switches { margin-bottom: 5px; }
+  #controls-grid { gap: 2px 8px; }
 }
 
 /* ------------------------------------------------ CONFIG: the other faces */
@@ -2089,3 +2113,43 @@ body[data-touchsize="l"] { --tscale: 1.24; }
   color: var(--amber);
 }
 #binds-reset-note[hidden] { display: none; }
+
+
+/* ------------------------------- CONFIG: emulator bindings as chips, not a
+   table. Four rows of three columns cost 151px of the page on their own. */
+#controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 3px 10px;
+  margin-bottom: 4px;
+}
+.sys-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.sys-name {
+  flex: 1 1 auto;
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  color: var(--paper);
+  white-space: nowrap;
+}
+.sys-row .bind {
+  font-family: "Silkscreen", monospace;
+  font-size: 7px;
+  min-width: 46px;
+  padding: 3px 4px;
+  background: var(--field);
+  color: var(--paper);
+  border: 2px solid var(--field-border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sys-row .bind:hover { border-color: var(--amber); color: var(--amber); }
+.sys-row .bind.capturing {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  animation: blink 0.8s steps(2) infinite;
+}
