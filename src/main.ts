@@ -714,6 +714,7 @@ const netplay = new Netplay({
     viewExit.hidden = true;
     sfx.connect();
     flash(netplay.role === "host" ? "PLAYER 2 JOINED!" : "CONNECTED AS P2");
+    setHudRole();
     syncViews();
   },
   onStop: (reason) => {
@@ -721,6 +722,7 @@ const netplay = new Netplay({
     hostCode.hidden = true;
     sfx.error();
     flash(reason.toUpperCase());
+    setHudRole();
     syncViews();
   },
 });
@@ -829,6 +831,17 @@ function loadState(): void {
 
 // ------------------------------------------------------------------ badge
 
+function setHudRole(): void {
+  const el = $("#hud-role");
+  if (!netplay.active) {
+    el.hidden = true;
+    return;
+  }
+  const lag = netplay.rtt === null ? "" : ` · ${Math.round(netplay.rtt)} MS`;
+  el.textContent = `2P · ${netplay.role === "host" ? "P1" : "P2"}${lag}`;
+  el.hidden = false;
+}
+
 function setBadge(text: string | null): void {
   badge.hidden = text === null;
   badge.textContent = text ?? "";
@@ -841,13 +854,10 @@ function flash(text: string): void {
   setBadge(text);
   clearTimeout(badgeTimer);
   badgeTimer = window.setTimeout(() => {
-    setBadge(
-      netplay.active
-        ? `NETPLAY · ${netplay.role === "host" ? "P1" : "P2"}`
-        : paused
-          ? "PAUSED"
-          : null,
-    );
+    // Netplay used to fall back to a permanent badge here, which parked a
+    // bordered box over the bottom of the picture for the whole session. The
+    // role is something you need once; it lives in the HUD now.
+    setBadge(paused ? "PAUSED" : null);
   }, 1600);
 }
 
@@ -1348,7 +1358,7 @@ function tick(now: number): void {
         break;
       }
       if (peerStallFrames >= 60) {
-        setBadge(`NETPLAY · ${netplay.role === "host" ? "P1" : "P2"}`);
+        flash(`NETPLAY · ${netplay.role === "host" ? "P1" : "P2"}`);
       }
       peerStallFrames = 0;
       const { p1, p2 } = netplay.step(input.poll());
@@ -2216,11 +2226,22 @@ function updateHudHint(): void {
     `K/L SAVE·LOAD · BACKSPACE REWIND · P PAUSE · F FULLSCREEN`;
 }
 
+let bindsNoteTimer = 0;
+
 $("#btn-binds-reset").addEventListener("click", () => {
   input.setBinds([defaultBinds(0), defaultBinds(1)]);
+  // The emulator actions are bindings too, and this was quietly leaving them
+  // alone: rebind rewind, hit reset, and rewind stayed where you put it.
+  input.setSysBinds(defaultSysBinds());
   persistBinds();
   renderBinds();
   sfx.select();
+  // Resetting an already-default set changes nothing on screen, so without
+  // this the button looks broken even when it worked.
+  const note = $("#binds-reset-note");
+  note.hidden = false;
+  clearTimeout(bindsNoteTimer);
+  bindsNoteTimer = window.setTimeout(() => (note.hidden = true), 2200);
 });
 
 loadBinds();

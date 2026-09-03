@@ -17,7 +17,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       manifest: {
-        name: "Channel 3 — a NES that behaves like a television",
+        name: "Channel 3 — where the NES used to live",
         short_name: "Channel 3",
         description:
           "A Nintendo Entertainment System that lives in a browser tab and behaves like a television: a real CRT pipeline, P2P netplay, 60-second rewind, and twelve homebrew games that keep working offline.",

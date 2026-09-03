@@ -2068,3 +2068,24 @@ body[data-touchsize="l"] { --tscale: 1.24; }
     var(--chassis-lo) 0 25%, transparent 0 50%) 0 0 / 12px 12px;
 }
 .wall-face-plain::before { background: none; }
+
+/* Netplay role sits in the HUD, which you summon and which fades on its own,
+   instead of a bordered box parked over the picture for the whole session. */
+#hud-role {
+  margin-left: 10px;
+  padding: 2px 7px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+}
+#hud-role[hidden] { display: none; }
+
+#binds-reset-note {
+  margin: 5px 0 0;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  color: var(--amber);
+}
+#binds-reset-note[hidden] { display: none; }

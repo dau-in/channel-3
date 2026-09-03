@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Channel 3 — a NES that behaves like a television</title>
+    <title>Channel 3 — where the NES used to live</title>
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
@@ -19,7 +19,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Channel 3" />
     <meta property="og:url" content="https://channelthree.vercel.app/" />
-    <meta property="og:title" content="Channel 3 — a NES that behaves like a television" />
+    <meta property="og:title" content="Channel 3 — where the NES used to live" />
     <meta property="og:description" content="A Nintendo Entertainment System that lives in a browser tab and behaves like a television: a real CRT pipeline, P2P netplay, 60-second rewind, and twelve homebrew games that keep working offline." />
     <meta property="og:image" content="https://channelthree.vercel.app/og.png" />
     <meta property="og:image:type" content="image/png" />
@@ -28,7 +28,7 @@
     <meta property="og:image:alt" content="A CRT television showing the Channel 3 cartridge shelf over SMPTE colour bars, a console and a pad on the floor below." />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Channel 3 — a NES that behaves like a television" />
+    <meta name="twitter:title" content="Channel 3 — where the NES used to live" />
     <meta name="twitter:description" content="A Nintendo Entertainment System that lives in a browser tab and behaves like a television: a real CRT pipeline, P2P netplay, 60-second rewind, and twelve homebrew games that keep working offline." />
     <meta name="twitter:image" content="https://channelthree.vercel.app/og.png" />
   </head>
@@ -64,6 +64,7 @@
               <section id="hud" hidden>
                 <div id="hud-top">
                   <span id="rom-name"></span>
+                  <span id="hud-role" hidden></span>
                   <span id="hud-right">
                     <button class="nes-btn is-small" id="btn-save" disabled>SAVE</button>
                     <button class="nes-btn is-small" id="btn-load" disabled>LOAD</button>
@@ -249,6 +250,7 @@
                       <p class="cfg-lbl">EMULATOR</p>
                       <table id="controls-grid"></table>
                       <button class="nes-btn is-small" id="btn-binds-reset">RESET DEFAULTS</button>
+                      <p id="binds-reset-note" hidden>CONTROLS BACK TO DEFAULTS</p>
                       <p class="dim">PICK A BUTTON, THEN PRESS A KEY OR A GAMEPAD BUTTON &middot; ESC CANCELS. THE STICK ALWAYS WORKS AS A D-PAD.</p>
                       <label class="select-row touch-only">TOUCH PAD
                         <select id="touch-select">

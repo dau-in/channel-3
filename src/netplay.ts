@@ -8,14 +8,34 @@ import Peer, { DataConnection } from "peerjs";
  * simulations can never diverge. Host is player 1, guest is player 2.
  */
 
-const INPUT_DELAY = 3; // frames (~50 ms) of latency hiding
+/** Fallback until the round trip has been measured. */
+const DEFAULT_DELAY = 3;
+const MIN_DELAY = 2;
+const MAX_DELAY = 10;
+const FRAME_MS = 1000 / 60;
+/** How many probes the host sends before deciding. */
+const PINGS = 5;
+const PING_GAP_MS = 80;
+
+/** Frames of input delay that hide a given round trip.
+ *
+ *  Half the round trip is what actually has to be covered, plus a frame of
+ *  margin for jitter. Too low and the lockstep stalls every time a packet is
+ *  late, which reads as stutter; too high and the pad feels mushy. Stalling
+ *  is much worse than a few milliseconds of mush, so the margin rounds up. */
+export function delayForRtt(rttMs: number): number {
+  const frames = Math.ceil(rttMs / 2 / FRAME_MS) + 1;
+  return Math.max(MIN_DELAY, Math.min(MAX_DELAY, frames));
+}
 const ID_PREFIX = "channel3-v1-";
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I/L
 
 type Msg =
   | { t: "rom"; name: string; data: ArrayBuffer }
   | { t: "ready" }
-  | { t: "start" }
+  | { t: "ping"; i: number }
+  | { t: "pong"; i: number }
+  | { t: "start"; delay: number; rtt: number | null }
   | { t: "input"; f: number; b: number };
 
 export type Role = "host" | "guest";
@@ -40,6 +60,17 @@ export class Netplay {
   private local = new Map<number, number>();
   private remote = new Map<number, number>();
   private started = false;
+  private delay = DEFAULT_DELAY;
+  private pingSentAt = new Map<number, number>();
+  private samples: number[] = [];
+
+  /** Measured round trip in ms, or null before it has been probed. */
+  rtt: number | null = null;
+
+  /** Frames of input delay in force for this session. */
+  get inputDelay(): number {
+    return this.delay;
+  }
 
   constructor(private events: NetplayEvents) {}
 
@@ -116,7 +147,7 @@ export class Netplay {
    * frame+DELAY, return both pads for the current frame mapped to players.
    */
   step(localPad: number): { p1: number; p2: number } {
-    const scheduled = this.frame + INPUT_DELAY;
+    const scheduled = this.frame + this.delay;
     if (!this.local.has(scheduled)) {
       this.local.set(scheduled, localPad);
       this.send({ t: "input", f: scheduled, b: localPad });
@@ -155,12 +186,26 @@ export class Netplay {
         this.events.onRom(msg.name, new Uint8Array(msg.data));
         break;
       case "ready":
-        // Guest is loaded; host starts both sides. Idempotent: a repeated
-        // "ready" just re-sends "start" in case the guest missed it.
-        this.send({ t: "start" });
-        this.begin();
+        // Guest is loaded. Probe the line before committing to a delay, then
+        // start both sides on the same number — if the two disagreed the
+        // simulations would schedule inputs for different frames and drift.
+        // Idempotent: a repeated "ready" restarts the probe.
+        void this.probeThenStart();
         break;
+      case "ping":
+        this.send({ t: "pong", i: msg.i });
+        break;
+      case "pong": {
+        const sent = this.pingSentAt.get(msg.i);
+        if (sent !== undefined) {
+          this.pingSentAt.delete(msg.i);
+          this.samples.push(performance.now() - sent);
+        }
+        break;
+      }
       case "start":
+        this.delay = msg.delay;
+        this.rtt = msg.rtt;
         this.begin();
         break;
       case "input":
@@ -169,17 +214,42 @@ export class Netplay {
     }
   }
 
+  /** Host side: measure the round trip, pick a delay, tell the guest. */
+  private async probeThenStart(): Promise<void> {
+    if (this.started) return;
+    this.samples = [];
+    this.pingSentAt.clear();
+    for (let i = 0; i < PINGS; i++) {
+      this.pingSentAt.set(i, performance.now());
+      this.send({ t: "ping", i });
+      await new Promise((r) => setTimeout(r, PING_GAP_MS));
+      if (!this.conn?.open) return;
+    }
+    await new Promise((r) => setTimeout(r, PING_GAP_MS));
+    if (this.samples.length) {
+      // Median, not mean: one stalled probe should not set the delay for the
+      // whole session.
+      const sorted = [...this.samples].sort((a, b) => a - b);
+      this.rtt = sorted[Math.floor(sorted.length / 2)];
+      this.delay = delayForRtt(this.rtt);
+    }
+    this.send({ t: "start", delay: this.delay, rtt: this.rtt });
+    this.begin();
+  }
+
   private begin(): void {
     if (this.started) return;
     this.frame = 0;
     this.local.clear();
     this.remote.clear();
-    for (let f = 0; f < INPUT_DELAY; f++) {
+    for (let f = 0; f < this.delay; f++) {
       this.local.set(f, 0);
       this.remote.set(f, 0);
     }
     this.started = true;
-    this.events.onStatus(`Netplay live — you are ${this.role === "host" ? "P1" : "P2"}`);
+    const who = this.role === "host" ? "P1" : "P2";
+    const lag = this.rtt === null ? "" : ` · ${Math.round(this.rtt)} ms`;
+    this.events.onStatus(`Netplay live — you are ${who}${lag}`);
     this.events.onStart();
   }
 
@@ -194,6 +264,10 @@ export class Netplay {
     this.frame = 0;
     this.local.clear();
     this.remote.clear();
+    this.pingSentAt.clear();
+    this.samples = [];
+    this.rtt = null;
+    this.delay = DEFAULT_DELAY;
     this.conn?.close();
     this.conn = null;
     this.peer?.destroy();
