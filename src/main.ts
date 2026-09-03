@@ -948,8 +948,10 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-// Flipping channels with the wheel, like a tuner dial.
-window.addEventListener(
+// Flipping channels with the wheel, like a tuner dial — but only over the
+// picture. This used to listen on the window, so scrolling anywhere at all
+// moved the shelf, including over the chassis and the room around it.
+$("#screen-wrap").addEventListener(
   "wheel",
   (e) => {
     if (!powered || view !== "gallery" || !viewVs.hidden || !viewSettings.hidden) return;
@@ -1685,9 +1687,9 @@ for (const ev of ["pointerup", "pointercancel"] as const) {
   });
 }
 volumeKnob.addEventListener("wheel", (e) => {
-  // The carousel listens for wheel on the window, so without stopping this one
-  // here a scroll over the knob also flipped the shelf. preventDefault alone
-  // does not do it: the event still bubbles.
+  // The knob sits on the chin, outside the picture, so the carousel no longer
+  // hears this — stopping it anyway costs nothing and keeps the knob's wheel
+  // its own if either ever moves.
   e.preventDefault();
   e.stopPropagation();
   nudgeVolume(e.deltaY < 0 ? 0.05 : -0.05);
