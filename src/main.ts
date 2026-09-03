@@ -27,8 +27,16 @@ import {
   storageSummary,
   exportSaves,
   importSaves,
+  initSaves,
+  hasSave,
+  saveMeta,
+  putSave,
+  getSave,
+  dropSave,
+  clearSaves,
   type UserRom,
 } from "./library";
+import { isNesRom, romProblem } from "./ines";
 import { sfx, setSfxVolume, setSfxContext } from "./sfx";
 
 // Latin subset only — the UI is all-caps ASCII, so latin-ext would ship two
@@ -529,7 +537,7 @@ async function launchGame(name: string, bytes: Uint8Array, opts: LaunchOpts = {}
   galleryEnteredAt = performance.now();
 
   const key = opts.key ?? name;
-  const hasSave = !opts.fromNet && localStorage.getItem(`channel3-state:${key}`) !== null;
+  const saved = !opts.fromNet && hasSave(key);
 
   lastAutosave = performance.now();
   lastFrameAt = performance.now();
@@ -552,13 +560,13 @@ async function launchGame(name: string, bytes: Uint8Array, opts: LaunchOpts = {}
   if (!opts.fromNet) showTouchHint();
   if (!opts.fromNet) maybeWarnSilentSwitch();
 
-  if (!hasSave) return;
+  if (!saved) return;
 
   // There's a save for this cart: offer to pick it up, with the screenshot
   // taken when it was written so you can see where you left off.
   const preview = $("#continue-preview");
   try {
-    const meta = JSON.parse(localStorage.getItem(metaKey()) ?? "null");
+    const meta = saveMeta(game?.key ?? "");
     if (meta?.shot) {
       $<HTMLImageElement>("#continue-shot").src = meta.shot;
       $("#continue-time").textContent =
@@ -578,33 +586,17 @@ async function launchGame(name: string, bytes: Uint8Array, opts: LaunchOpts = {}
   focusDialog(viewContinue);
 }
 
-// A frame with almost no distinct colours means the core never got going.
-function looksBlank(rgba: Uint8Array): boolean {
-  const px = new Uint32Array(rgba.buffer, rgba.byteOffset, rgba.length >> 2);
-  const seen = new Set<number>();
-  for (let i = 0; i < px.length; i += 137) {
-    seen.add(px[i]);
-    if (seen.size > 2) return false;
-  }
-  return true;
-}
-
-// jsnes doesn't cover every mapper. Rather than leave someone staring at a
-// black screen, say so — but only once the game has had time to boot, and
-// never while the continue prompt is holding it paused.
+// jsnes doesn't cover every mapper. This used to be guessed by looking for a
+// blank framebuffer a couple of seconds in, which flagged perfectly good games
+// that simply open on a dark frame. The header says which mapper a cart wants
+// before it is ever run, so ask it instead of guessing — and say which one,
+// because "may not be compatible" tells nobody anything.
 function checkCompatibility(key: string): void {
-  const check = () => {
-    if (!game || game.key !== key) return;
-    if (paused) {
-      setTimeout(check, 1500);
-      return;
-    }
-    if (looksBlank(emu.rgba)) {
-      sfx.error();
-      flash("⚠ THIS ROM MAY NOT BE COMPATIBLE");
-    }
-  };
-  setTimeout(check, 2600);
+  if (!game || game.key !== key) return;
+  const problem = romProblem(game.bytes);
+  if (!problem) return;
+  sfx.error();
+  flash(`⚠ ${problem}`);
 }
 
 function exitToGallery(): void {
@@ -654,12 +646,12 @@ function maybeAutosave(now: number): void {
   if (!settings.autosave || !game || netplay.active || view !== "playing" || paused) return;
   if (now - lastAutosave < 30_000) return;
   lastAutosave = now;
-  try {
-    writeState();
-    flashAutosaveOsd();
-  } catch {
-    // quota — the periodic save is best-effort, the manual one reports
-  }
+  void writeState().then(
+    () => flashAutosaveOsd(),
+    () => {
+      // best-effort; the manual save is the one that reports
+    },
+  );
 }
 
 let autosaveOsdTimer = 0;
@@ -678,7 +670,7 @@ function flashAutosaveOsd(): void {
 window.addEventListener("pagehide", () => {
   if (settings.autosave && game && !netplay.active && view === "playing") {
     try {
-      writeState();
+      void writeState();
     } catch {
       // nothing useful to do while the page is going away
     }
@@ -768,13 +760,7 @@ $("#btn-join").addEventListener("click", () => {
 
 // ------------------------------------------------------------ save states
 
-function stateKey(): string {
-  return `channel3-state:${game?.key ?? ""}`;
-}
 
-function metaKey(): string {
-  return `channel3-meta:${game?.key ?? ""}`;
-}
 
 // Thumbnail for the continue prompt. Overscan is cropped the same 8px the
 // renderer crops, so the preview matches what was on screen.
@@ -794,30 +780,32 @@ function thumbnail(): string {
   return out.toDataURL("image/jpeg", 0.7);
 }
 
-function writeState(): void {
-  localStorage.setItem(stateKey(), emu.serialize());
+async function writeState(): Promise<void> {
+  if (!game) return;
+  let shot: string | undefined;
   try {
-    localStorage.setItem(metaKey(), JSON.stringify({ t: Date.now(), shot: thumbnail() }));
+    shot = thumbnail();
   } catch {
-    // the state itself landed; losing the thumbnail is survivable
+    // losing the thumbnail is survivable; the state is the point
   }
+  await putSave(game.key, emu.serialize(), { t: Date.now(), shot });
 }
 
-function saveState(): void {
+async function saveState(): Promise<void> {
   if (!game || netplay.active) return;
   try {
-    writeState();
+    await writeState();
     sfx.select();
     flash("STATE SAVED");
   } catch {
     sfx.error();
-    flash("SAVE FAILED (TOO LARGE)");
+    flash("SAVE FAILED");
   }
 }
 
-function loadState(): void {
+async function loadState(): Promise<void> {
   if (!game || netplay.active) return;
-  const json = localStorage.getItem(stateKey());
+  const json = await getSave(game.key);
   if (!json) {
     sfx.error();
     flash("NO SAVED STATE");
@@ -1449,6 +1437,7 @@ async function importRoms(files: File[]): Promise<void> {
   let added = 0;
   let dupes = 0;
   let failed = 0;
+  let notRoms = 0;
   let firstNew = -1;
   const fresh = new Set<string>();
 
@@ -1458,6 +1447,14 @@ async function importRoms(files: File[]): Promise<void> {
       bytes = new Uint8Array(await file.arrayBuffer());
     } catch {
       failed++;
+      continue;
+    }
+    // The picker's accept=".nes" is a hint the file dialog lets you override,
+    // and the drop path only looked at the extension, so a .zip made it onto
+    // the shelf and sat there as a cartridge that could never run. The header
+    // is the honest test, and it catches a renamed ROM too.
+    if (!isNesRom(bytes)) {
+      notRoms++;
       continue;
     }
     try {
@@ -1493,10 +1490,11 @@ async function importRoms(files: File[]): Promise<void> {
   const parts: string[] = [];
   if (added) parts.push(`ADDED ${added}`);
   if (dupes) parts.push(`${dupes} ALREADY IN LIBRARY`);
+  if (notRoms) parts.push(`${notRoms} NOT A NES ROM`);
   if (failed) parts.push(`${failed} FAILED`);
   flash(parts.join(" · ") || "NOTHING ADDED");
   if (added) sfx.insert();
-  else if (failed && !dupes) sfx.error();
+  else if ((failed || notRoms) && !dupes) sfx.error();
   else sfx.select();
 }
 
@@ -1529,7 +1527,7 @@ $("#btn-exit-cancel").addEventListener("click", () => closeExit(true));
 
 $("#btn-exit-save").addEventListener("click", () => {
   try {
-    writeState();
+    void writeState();
   } catch {
     // leaving anyway; a failed save shouldn't trap the user in the dialog
   }
@@ -1544,12 +1542,14 @@ $("#btn-exit-nosave").addEventListener("click", () => {
 
 $("#btn-continue-load").addEventListener("click", () => {
   viewContinue.hidden = true;
-  const json = localStorage.getItem(stateKey());
-  if (json) {
-    emu.deserialize(json);
-    rewind.clear();
-  }
-  paused = false;
+  const key = game?.key ?? "";
+  void getSave(key).then((json) => {
+    if (json && game?.key === key) {
+      emu.deserialize(json);
+      rewind.clear();
+    }
+    paused = false;
+  });
   sfx.select();
 });
 
@@ -2496,10 +2496,7 @@ function openRemove(req: PendingRemove): void {
 }
 
 function purgeLocal(entry: LibraryEntry, dropSaves: boolean): void {
-  if (dropSaves && entry.hash) {
-    localStorage.removeItem(`channel3-state:${entry.hash}`);
-    localStorage.removeItem(`channel3-meta:${entry.hash}`);
-  }
+  if (dropSaves && entry.hash) void dropSave(entry.hash);
   forgetLabel(entry);
   romCache.delete(entry.file);
 }
@@ -2545,6 +2542,7 @@ async function confirmRemove(): Promise<void> {
     const mine = library.filter((e) => e.mine);
     const wasPlaying = !!game && mine.some((e) => e.hash === game!.key);
     await clearUserRoms();
+    await clearSaves();
     for (const entry of mine) purgeLocal(entry, true);
     library = library.filter((e) => !e.mine);
     if (selected >= library.length) selected = Math.max(0, library.length - 1);
@@ -2577,14 +2575,16 @@ $("#btn-remove-yes").addEventListener("click", () => void confirmRemove());
 // ------------------------------------------------------- backup & restore
 
 $("#btn-backup").addEventListener("click", () => {
-  const blob = new Blob([exportSaves()], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `channel3-saves-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  sfx.select();
-  flash("SAVES BACKED UP");
+  void (async () => {
+    const blob = new Blob([await exportSaves()], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `channel3-saves-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    sfx.select();
+    flash("SAVES BACKED UP");
+  })();
 });
 
 const restoreInput = $<HTMLInputElement>("#restore-input");
@@ -2597,7 +2597,7 @@ restoreInput.addEventListener("change", () => {
   if (!file) return;
   void (async () => {
     try {
-      const n = importSaves(await file.text());
+      const n = await importSaves(await file.text());
       sfx.connect();
       flash(`RESTORED ${n} SAVE${n === 1 ? "" : "S"}`);
     } catch (e) {
@@ -2835,6 +2835,7 @@ void (async () => {
   } catch {
     // IndexedDB unavailable (private mode): the bundled library still works
   }
+  await initSaves();
   renderCarousel();
   syncViews();
   renderCredits();
